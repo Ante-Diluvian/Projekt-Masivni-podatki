@@ -9,9 +9,8 @@ var accelerometerSchema = new Schema({
 	'timestamp' : {
 		type: Date,
 		default: Date.now
-	},
+	}
 	
-
 });
 
 module.exports = mongoose.model('accelerometer', accelerometerSchema);
