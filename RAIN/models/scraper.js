@@ -56,6 +56,19 @@ async function scrapeAllRecipes(url) {
 
   recipe.ingredients = ingredients;
 
+  recipe.instructions = [];
+
+  $('#mm-recipes-steps__content_1-0 ol > li').each((i, li) => {
+    const cloned = $(li).clone();
+
+    cloned.find('figure').remove();
+
+    const step = cloned.text().trim();
+    if (step) {
+      recipe.instructions.push(step);
+    }
+  });
+
     return recipe;
   } catch (error) {
     console.error('Error scraping the recipe:', error.message);
