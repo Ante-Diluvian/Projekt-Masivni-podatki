@@ -26,6 +26,36 @@ async function scrapeAllRecipes(url) {
 
     recipe.nutrition = nutrition;
 
+    const ingredients = [];
+
+    // Case 1: If ingredients have headings
+  $('#mm-recipes-lrs-ingredients_1-0 .mm-recipes-structured-ingredients__list-heading').each((i, headingEl) => {
+    const heading = $(headingEl).text().trim();
+    const ul = $(headingEl).next('ul');
+    const items = [];
+
+    ul.find('.mm-recipes-structured-ingredients__list-item').each((j, itemEl) => {
+      const itemText = $(itemEl).text().trim();
+      if (itemText) items.push(itemText);
+    });
+
+    if (items.length) {
+      ingredients.push({ heading, items });
+    }
+  });
+
+  // Case 2: If there are no headings, get all ingredients from a flat list
+  if (ingredients.length === 0) {
+    $('#mm-recipes-lrs-ingredients_1-0 .mm-recipes-structured-ingredients__list .mm-recipes-structured-ingredients__list-item').each((i, itemEl) => {
+      const itemText = $(itemEl).text().trim();
+      if (itemText) {
+        ingredients.push(itemText);
+      }
+    });
+  }
+
+  recipe.ingredients = ingredients;
+
     return recipe;
   } catch (error) {
     console.error('Error scraping the recipe:', error.message);
