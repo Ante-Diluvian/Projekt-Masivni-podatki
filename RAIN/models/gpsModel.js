@@ -2,12 +2,15 @@ var mongoose = require('mongoose');
 var Schema   = mongoose.Schema;
 
 var gpsSchema = new Schema({
-	'latitude' : Number,
-	'longitude' : Number,
-	'altitude' : Number,
-	'timestamp' : {
-		type: Date,
-		default: Date.now
+	startLatitude : Number,
+	startLongitude : Number,
+	startAltitude : Number,
+	endLatitude : Number,
+	endtLongitude : Number,
+	startAltitude : Number,
+	workout : {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'Workout'
 	}
 });
 

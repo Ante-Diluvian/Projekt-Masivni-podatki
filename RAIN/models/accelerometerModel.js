@@ -2,15 +2,23 @@ var mongoose = require('mongoose');
 var Schema   = mongoose.Schema;
 
 var accelerometerSchema = new Schema({
-	'accel_x' : Number,
-	'accel_y' : Number,
-	'accel_z' : Number,
+	avgSpeed: [{
+		type: Number,
+		required: true
+	  }],
+	maxSpeed: [{
+		type: Number,
+		required: true
+	  }],
 
-	'timestamp' : {
+	timestamp : [{
 		type: Date,
 		default: Date.now
+	}],	
+	workout : {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'Workout'
 	}
-	
 });
 
 module.exports = mongoose.model('accelerometer', accelerometerSchema);
