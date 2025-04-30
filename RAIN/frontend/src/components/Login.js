@@ -4,6 +4,34 @@ import { UserContext } from '../userContext';
 import { Navigate } from 'react-router-dom';
 
 function Login() {
+
+  const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const userContext = useContext(UserContext); 
+
+    async function Login(e){
+      e.preventDefault();
+      const res = await fetch("http://localhost:3001/users/login", {
+          method: "POST",
+          credentials: "include",
+          headers: { 'Content-Type': 'application/json'},
+          body: JSON.stringify({
+              username: username,
+              password: password
+          })
+      });
+      const data = await res.json();
+      if(data._id !== undefined){
+          userContext.setUserContext(data);
+          window.location.href="/";
+      } else {
+          setUsername("");
+          setPassword("");
+          setError("Invalid username or password");
+      }
+  }
+
     return(
 <section className="vh-200 pt-5 mt-5">
         <div className="container-fluid h-custom">
@@ -12,15 +40,23 @@ function Login() {
               <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-login-form/draw2.webp" className="img-fluid" alt="Sample"/>
             </div>
             <div className="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
-              <form >
+              <form onSubmit={Login}>
  
                 <div className="form-outline mb-4">
-                  <input type="email" id="email" className="form-control form-control-lg" placeholder="Enter a valid email address" required/>
-                  <label className="form-label" htmlFor="email">E-mail</label>
+                  <input type="username" className="form-control form-control-lg" placeholder="Enter a valid username"  value={username} onChange={(e)=>(setUsername(e.target.value))} required/>
+                  <label className="form-label" htmlFor="username">username</label>
                 </div>
   
                 <div className="form-outline mb-3">
-                  <input type="password" id="password" className="form-control form-control-lg"placeholder="Enter password" required/>
+                <input 
+  type="password" 
+  id="password" 
+  className="form-control form-control-lg"
+  placeholder="Enter password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)} 
+  required 
+/>
                   <label className="form-label" htmlFor="password">Password</label>
                 </div>
   

@@ -1,7 +1,33 @@
 import { useState } from 'react';
 
 function Register() {
- 
+  const [username, setUsername] = useState([]);
+  const [password, setPassword] = useState([]);
+  const [email, setEmail] = useState([]);
+
+  async function Register(e){
+    e.preventDefault();
+    const res = await fetch("http://localhost:3001/users", {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: email,
+            username: username,
+            password: password
+        })
+    });
+    const data = await res.json();
+    if(data._id !== undefined){
+        window.location.href="/login";
+    }
+    else{
+        setUsername("");
+        setPassword("");
+        setEmail("");
+    }
+}
+
     return(
         <section className="vh-100">
         <div className="container h-100">
@@ -16,13 +42,13 @@ function Register() {
       
                     <div className="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
                       <p className="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Sign up</p>
-                      <form className="mx-1 mx-md-4">
+                      <form onSubmit={Register} className="mx-1 mx-md-4">
                         
                       <div className="input-group mb-4">
                         <span className="input-group-text">
                             <i className="fas fa-user"></i>
                         </span>
-                        <input type="text" className="form-control" placeholder="username" />
+                        <input type="text" className="form-control"  value={username} onChange={(e)=>(setUsername(e.target.value))} placeholder="username" />
                         </div>
 
       
@@ -31,7 +57,7 @@ function Register() {
                         <span className="input-group-text">
                         <i className="fas fa-envelope fa-lg me-3 fa-fw"></i>
                         </span>
-                        <input type="email" className="form-control" placeholder="E-mail" />
+                        <input type="email" className="form-control" value={email} onChange={(e)=>(setEmail(e.target.value))} placeholder="E-mail" />
                         </div>
                     
 
@@ -39,7 +65,7 @@ function Register() {
                         <span className="input-group-text">
                         <i className="fas fa-lock fa-lg me-3 fa-fw"></i>
                         </span>
-                        <input type="password" className="form-control" placeholder="Password" />
+                        <input type="password" className="form-control" value={password} onChange={(e)=>(setPassword(e.target.value))} placeholder="Password" />
                         </div>
                 
                         <div className="input-group mb-4">
@@ -57,7 +83,7 @@ function Register() {
                         </div>
 
                         <div className="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
-                          <button type="button" data-mdb-button-init data-mdb-ripple-init className="btn btn-primary btn-lg" >Register</button>
+                        <button type="submit" className="btn btn-primary btn-lg">Register</button>
                         </div>
                       </form>
                     </div>

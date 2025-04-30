@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
 var session = require('express-session');
-
+var cors = require('cors');
 //Routes
 var userRoutes = require('./routes/userRoutes');
 var gpsRoutes = require('./routes/gpsRoutes');
@@ -15,6 +15,18 @@ var recipeRoutes = require('./routes/recipeRoutes');
 
 var app = express();
 
+var allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
+app.use(cors({
+  credentials: true,
+  origin: function(origin, callback){
+    if(!origin) return callback(null, true);
+    if(allowedOrigins.indexOf(origin)===-1){
+      var msg = "The CORS policy does not allow access from the specified Origin.";
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
+}));
 require('dotenv').config();
 
 // view engine setup
