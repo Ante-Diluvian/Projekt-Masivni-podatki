@@ -9,6 +9,8 @@ var session = require('express-session');
 var userRoutes = require('./routes/userRoutes');
 var gpsRoutes = require('./routes/gpsRoutes');
 var accelerometerRoutes = require('./routes/accelerometerRoutes');
+var scraperRoutes = require('./routes/scraperRoutes');
+var recipeRoutes = require('./routes/recipeRoutes');
 
 var app = express();
 
