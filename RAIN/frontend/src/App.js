@@ -5,7 +5,9 @@ import Header from "./components/Header";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Logout from "./components/Logout";
-import Footer from './components/Footer.js';  
+import Footer from './components/Footer.js';
+import Recipes from './components/Recipes.js';  
+import Recipe from './components/Recipe.js';
 
 function App() {
   const [user, setUser] = useState(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -28,6 +30,8 @@ function App() {
           <Route path="/login" element={<Login/>} />
           <Route path="/register" element={<Register/>} />
           <Route path="/logout" element={<Logout/>} />
+          <Route path="/recipes" element={<Recipes/>} />
+          <Route path="/recipes/:id" element={<Recipe/>} />
         </Routes>
         </div>
         <Footer/>

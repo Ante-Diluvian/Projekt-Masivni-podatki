@@ -22,6 +22,7 @@ function Header() {
                         {context => (
                             context.user ?
                                 <div className="navbar-nav  ml-auto">
+                                    <li><Link className="nav-link" to='/recipes'>Recipes</Link></li>
                                     <li><Link className="nav-link" to='/profile'>Profile</Link></li>
                                     <li><Link className="nav-link" to='/logout'>Logout</Link></li>
                                 </div>
