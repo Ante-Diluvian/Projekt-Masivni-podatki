@@ -10,8 +10,20 @@ module.exports = {
         try {
             const { name, nutrition, ingredients, instructions } = req.body;
 
-            if (!name || !ingredients || !instructions) 
-                return res.status(400).json({ error: 'Missing required fields' });
+            //Check if all required fields are present
+            const missing = [];
+            if (!name) 
+                missing.push('name');
+            if (!ingredients) 
+                missing.push('ingredients');
+            if (!instructions) 
+                missing.push('instructions');
+            if (missing.length) {
+                return res.status(400).json({
+                    error: 'Missing required fields',
+                    missingFields: missing
+                });
+            }
             
             //Create a new recipe
             const newRecipe = new Recipe({
@@ -30,8 +42,6 @@ module.exports = {
 
                 return res.status(201).json(newRecipe);
             });
-
-            res.status(201).json(newRecipe);
         } catch (err) {
             console.error('Error creating recipe:', err);
             res.status(500).json({ error: 'Internal server error', details: err.message });
