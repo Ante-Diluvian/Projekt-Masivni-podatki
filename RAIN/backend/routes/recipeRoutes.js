@@ -1,16 +1,16 @@
 // routes/recipeRoutes.js
 const express = require('express');
-const Recipe = require('../models/Recipe'); // Model za recept, če boš shranjeval v bazo
+const recipeController = require('../controllers/recipeController.js');
 
 const router = express.Router();
 
-//POST /api/recipes (ustvari nov recept)
+//POST /api/recipes
 router.post('/', recipeController.createRecipe);
 
-//GET /api/recipes (pridobi vse recepte)
+//GET /api/recipes
 router.get('/', recipeController.getAllRecipes);
 
-//GET /api/recipes/:id (pridobi recept po ID-ju)
+//GET /api/recipes/:id
 router.get('/:id', recipeController.getRecipeById);
 
 module.exports = router;

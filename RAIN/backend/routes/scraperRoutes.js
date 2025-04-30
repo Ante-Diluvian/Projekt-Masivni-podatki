@@ -1,6 +1,6 @@
 const express = require('express');
-const { scrapeAllRecipes } = require('../scraper');
-const Recipe = require('../models/Recipe');
+const { scrapeAllRecipes } = require('../models/scraper');
+const recipeController = require('../controllers/recipeController');
 
 const router = express.Router();
 
@@ -15,14 +15,7 @@ router.get('/scrape', async (req, res) => {
         if (!recipeData) 
             return res.status(500).json({ error: 'Failed to scrape recipe' });
         
-        const newRecipe = new Recipe({
-            name: recipeData.name,
-            nutrition: recipeData.nutrition,
-            ingredients: recipeData.ingredients,
-            instructions: recipeData.instructions,
-        });
-
-        res.json(newRecipe);
+        await recipeController.createRecipe(req, res);
     } catch (err) {
         console.error('Error scraping and saving recipe:', err);
         res.status(500).json({ error: 'Internal server error', details: err.message });
