@@ -5,6 +5,7 @@ import Header from "./components/Header";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Logout from "./components/Logout";
+import Footer from './components/Footer.js';  
 
 function App() {
   const [user, setUser] = useState(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -21,12 +22,15 @@ function App() {
     }}>
       <div className="App">
         <Header/> 
+        <div className="container">
         <Routes>
           <Route path="/" element={<h1>Home</h1>} />
           <Route path="/login" element={<Login/>} />
           <Route path="/register" element={<Register/>} />
           <Route path="/logout" element={<Logout/>} />
         </Routes>
+        </div>
+        <Footer/>
       </div>
     </UserContext.Provider>
   </BrowserRouter>

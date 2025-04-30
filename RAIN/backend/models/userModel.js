@@ -8,7 +8,8 @@ var userSchema = new Schema({
 	timestamp : {
 		type: Date,
 		default: Date.now
-	}
+	},
+	user_type : Number,
 });
 
 module.exports = mongoose.model('user', userSchema);
