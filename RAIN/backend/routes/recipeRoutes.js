@@ -1,26 +1,16 @@
+// routes/recipeRoutes.js
 const express = require('express');
-const { scrapeAllRecipes } = require('../scraper');
+const Recipe = require('../models/Recipe'); // Model za recept, če boš shranjeval v bazo
 
 const router = express.Router();
 
-//GET /api/recipes
-router.get('/', async (req, res) => {
-  const { url } = req.query;
-  if (!url) {
-    return res.status(400).json({ error: 'Missing required query parameter: url' });
-  }
+//POST /api/recipes (ustvari nov recept)
+router.post('/', recipeController.createRecipe);
 
-  try {
-    const recipe = await scrapeAllRecipes(url);
+//GET /api/recipes (pridobi vse recepte)
+router.get('/', recipeController.getAllRecipes);
 
-    if (!recipe) 
-        return res.status(500).json({ error: 'Failed to scrape recipe' });
-    
-    res.json(recipe);
-  } catch (err) {
-    console.error('Error in /api/recipes:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+//GET /api/recipes/:id (pridobi recept po ID-ju)
+router.get('/:id', recipeController.getRecipeById);
 
 module.exports = router;
