@@ -6,9 +6,12 @@ var logger = require('morgan');
 var mongoose = require('mongoose');
 var session = require('express-session');
 
+//Routes
 var userRoutes = require('./routes/userRoutes');
 var gpsRoutes = require('./routes/gpsRoutes');
 var accelerometerRoutes = require('./routes/accelerometerRoutes');
+var scraperRoutes = require('./routes/scraperRoutes');
+var recipeRoutes = require('./routes/recipeRoutes');
 
 var app = express();
 
@@ -24,15 +27,37 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// SESSION
+var session = require('express-session');
+app.use(session({
+  secret: 'hard work',
+  resave: true,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, 
+    httpOnly: true
+  }
+}));
+app.use(function (req, res, next) {
+  res.locals.session = req.session;
+  next();
+});
+
 app.get('/', async (req, res) => {
   try {
-    // Renderiramo index.ejs s seznamom vprašanj
+    //Renderiramo index.ejs s seznamom vprašanj
     res.render('index', { title: 'RAIN' });
   } catch (err) {
     console.error(err);
     res.status(500).send('Error!');
   }
 });
+
+app.use('/users', userRoutes);
+app.use('/gps', gpsRoutes);
+app.use('/accelerometer', accelerometerRoutes);
+app.use('/scrape', scraperRoutes);
+app.use('/recipes', recipeRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -56,7 +81,7 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .catch(err => console.log('An error occured:', err));
   
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Aplikacija teče na http://localhost:${port}`);
 });

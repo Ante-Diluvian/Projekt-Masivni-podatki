@@ -122,5 +122,37 @@ module.exports = {
 
             return res.status(204).json();
         });
+    },
+
+    showRegister: function(req, res){
+        res.render('user/register');
+    },
+
+    showLogin: function(req, res){
+        res.render('user/login');
+    },
+
+    login: function(req, res, next){
+        UserModel.authenticate(req.body.username, req.body.password, function(err, user){
+            if(err || !user){
+                var err = new Error('Wrong username or paassword');
+                err.status = 401;
+                return next(err);
+            }
+            req.session.userId = user._id;
+            return res.json(user);
+        });
+    },
+
+    logout: function(req, res, next){
+        if(req.session){
+            req.session.destroy(function(err){
+                if(err){
+                    return next(err);
+                } else {
+                    return res.status(201).json({});
+                }
+            });
+        }
     }
 };
