@@ -17,6 +17,23 @@ var app = express();
 
 require('dotenv').config();
 
+//CORS
+var cors = require('cors');
+var allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://locahost:8001', 'exp://127.0.0.1:19000', 'http://localhost:19006'];
+app.use(cors({
+  credentials: true,
+  origin: function (origin, callback) {
+    //Do not block requests with no origin (like mobile apps or curl requests)
+    if (!origin) 
+      return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  }
+}));
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
