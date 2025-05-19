@@ -2,6 +2,7 @@ import cv2 as cv
 import numpy as np
 import math
 
+#region Priprava podatkov
 def procesiraj_sliko(pot):
     slika = cv.imread(pot)
     sivinska_slika = cv.cvtColor(slika, cv.COLOR_BGR2GRAY)
@@ -38,10 +39,19 @@ def filtriraj_z_gaussovim_jedrom(slika,sigma):
     return konvolucija(slika,jedro)
     pass
 
+def lineariziraj_sivine(slika):
+    min_val = np.min(slika)
+    max_val = np.max(slika)
+
+    linearizirana = (slika - min_val) / (max_val - min_val) * 255
+    return linearizirana.astype(np.uint8)
+#endregion
+
 if __name__ == "__main__":
     slika = procesiraj_sliko("test/clovek.jpg")
     slika = cv.resize(slika,(500,700))
-    slika = filtriraj_z_gaussovim_jedrom(slika,5)
+    slika = filtriraj_z_gaussovim_jedrom(slika,2)
+    slika = lineariziraj_sivine(slika)
     if slika is None:
         print("Napaka: Slika ni bila naloÅ¾ena. Preveri pot do slike.")
     else:
