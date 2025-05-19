@@ -3,89 +3,101 @@ import numpy as np
 import math
 
 #region Priprava podatkov
-def procesiraj_sliko(pot):
-    slika = cv.imread(pot)
-    sivinska_slika = cv.cvtColor(slika, cv.COLOR_BGR2GRAY)
-    return sivinska_slika
+def process_img(path):
+    img = cv.imread(path)
+    gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    return gray_img
     pass
 
-def konvolucija(slika, jedro):
-    visina, sirina = slika.shape
-    j_visina, j_sirina = jedro.shape
+def convolution(img, core):
+    height, width = img.shape
+    j_core, j_core = core.shape
 
-    pad_v = j_visina // 2
-    pad_s = j_sirina // 2
+    pad_v = j_core // 2
+    pad_s = j_core // 2
       
     
-    razsirjena_slika = np.pad(slika, ((pad_v, pad_v), (pad_s, pad_s)))
-    filtrirano = np.zeros_like(slika, dtype=np.float32)
-    for i in range(visina):
-        for j in range(sirina):
-            filtrirano[i, j] = np.sum(razsirjena_slika[i:i+j_visina, j:j+j_sirina] * jedro)
+    expanded_image = np.pad(slika, ((pad_v, pad_v), (pad_s, pad_s)))
+    filtrated = np.zeros_like(slika, dtype=np.float32)
+    for i in range(height):
+        for j in range(width):
+            filtrated[i, j] = np.sum(expanded_image[i:i+j_core, j:j+j_core] * core)
     
-    return filtrirano
+    return filtrated
     pass
 
-def filtriraj_z_gaussovim_jedrom(slika,sigma):
-    velikost_jedra = (int)(2 * sigma) * 2 + 1  
-    k = (velikost_jedra / 2) - (1/2)
+def filter_with_gausso_core(img,sigma):
+    size_of_the_core = (int)(2 * sigma) * 2 + 1  
+    k = (size_of_the_core / 2) - (1/2)
   
-    jedro = np.zeros((velikost_jedra, velikost_jedra), dtype=np.float32)
-    for i in range(velikost_jedra):
-        for j in range(velikost_jedra):
-            jedro[i,j] = (1 / (2 * math.pi * math.pow(sigma, 2)) * math.exp(-(math.pow((i - k - 1), 2) + math.pow((j - k - 1), 2)) / (2 * math.pow(sigma, 2))))
+    core = np.zeros((size_of_the_core, size_of_the_core), dtype=np.float32)
+    for i in range(size_of_the_core):
+        for j in range(size_of_the_core):
+            core[i,j] = (1 / (2 * math.pi * math.pow(sigma, 2)) * math.exp(-(math.pow((i - k - 1), 2) + math.pow((j - k - 1), 2)) / (2 * math.pow(sigma, 2))))
   
-    jedro /= np.sum(jedro)
-    return konvolucija(slika,jedro)
+    core /= np.sum(core)
+    return convolution(img,core)
     pass
 
-def lineariziraj_sivine(slika):
-    min_val = np.min(slika)
-    max_val = np.max(slika)
+def linearize_img(img):
+    min_val = np.min(img)
+    max_val = np.max(img)
 
-    linearizirana = (slika - min_val) / (max_val - min_val) * 255
-    return linearizirana.astype(np.uint8)
+    linearized = (img - min_val) / (max_val - min_val) * 255
+    return linearized.astype(np.uint8)
 #endregion
 
 #region Augmentacija podatkov
-def rotiraj_slika(slika, kot):
-    radiani = math.radians(kot)
-    rotirana_slika = np.zeros(slika.shape, dtype=np.uint8)
-    height, width = slika.shape
+def rotate_img(img, angle):
+    radian = math.radians(angle)
+    rotated_img = np.zeros(img.shape, dtype=np.uint8)
+    height, width = img.shape
 
     x = width // 2
     y = height // 2
     for i in range(height):
         for j in range(width):
-            x1 = (j - x) * math.cos(radiani) - (i - y) * math.sin(radiani)
-            y1 = (j - x) * math.sin(radiani) + (i - y) * math.cos(radiani)
+            x1 = (j - x) * math.cos(radian) - (i - y) * math.sin(radian)
+            y1 = (j - x) * math.sin(radian) + (i - y) * math.cos(radian)
 
             x1 = round(x1 + x)
             y1 = round(y1 + y)
 
             if 0 <= x1 < width and 0 <= y1 < height:
-                rotirana_slika[i, j] = slika[y1, x1]
+                rotated_img[i, j] = slika[y1, x1]
 
-    return rotirana_slika
+    return rotated_img
     pass
 
-def spremeni_svetlost(slika, faktor):
-    svetla_slika = slika.astype(np.float32) + faktor
-    svetla_slika = np.clip(svetla_slika, 0, 255)
-    return svetla_slika.astype(np.uint8)
+def change_brightness(img, factor):
+    brightness_image = img.astype(np.float32) + factor
+    brightness_image = np.clip(brightness_image, 0, 255)
+    return brightness_image.astype(np.uint8)
     pass
 
+def mirror_img(img):
+    height,width = img.shape
+    copy_img = img.copy()
 
+    for i in range(height):
+       for j in range(width):
+           copy_img[i,width - j - 1] = img[i,j]
+
+    return copy_img
+    pass
 
 #endregion
 
 if __name__ == "__main__":
-    slika = procesiraj_sliko("test/clovek.jpg")
-    slika = cv.resize(slika,(500,700))
-    slika = filtriraj_z_gaussovim_jedrom(slika,2)
-    slika = lineariziraj_sivine(slika)
-    rot_slika = rotiraj_slika(slika,45)
-    svetlost_slike = spremeni_svetlost(rot_slika,-100)
+    slika = process_img("test/clovek.jpg")
+    slika = cv.resize(slika,(300,500))
+    slika = filter_with_gausso_core(slika,2)
+    slika = linearize_img(slika)
+
+    rot_slika = rotate_img(slika,45)
+    svetlost_slike = change_brightness(rot_slika,-180)
+    zrcali_sliko = mirror_img(slika)
+
     if slika is None:
         print("Napaka: Slika ni bila naloÅ¾ena. Preveri pot do slike.")
     else:
@@ -93,6 +105,7 @@ if __name__ == "__main__":
             cv.imshow('Slika', slika.astype(np.uint8))
             cv.imshow('Rot Slika', rot_slika)
             cv.imshow('Svetla slika', svetlost_slike)
+            cv.imshow("zrcali", zrcali_sliko)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
 
