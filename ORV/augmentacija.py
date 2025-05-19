@@ -2,9 +2,12 @@ import cv2 as cv
 import numpy as np
 import math
 
+#region Zajem podatkov
+
+#endregion
+
 #region Priprava podatkov
-def process_img(path):
-    img = cv.imread(path)
+def process_img(img):
     gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     return gray_img
     pass
@@ -102,8 +105,13 @@ def move_img(img, x, y):
     pass
 #endregion
 
+#region 2FA
+
+#endregion
+
 if __name__ == "__main__":
-    slika = process_img("test/clovek2.jpg")
+    slika = cv.imread("test/clovek2.jpg")
+    slika = process_img(slika)
     slika = cv.resize(slika,(300,500))
     slika = filter_with_gausso_core(slika,2)
     slika = linearize_img(slika)
