@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity, Image, ImageBackground, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, TouchableOpacity, Image, ImageBackground, StyleSheet, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { login } from '../api/auth';
 
@@ -7,38 +7,56 @@ const LoginScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
+    const [imageLoaded, setImageLoaded] = useState(false);
+
     //TODO: Logiko za prijavo uporabnika
 
     return (
-    <ImageBackground source={require('../assets/images/background.jpg')} style={styles.background} resizeMode="cover">
+    <>
+      {!imageLoaded && (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      )}
+
+      <ImageBackground
+        source={require('../assets/images/login-background.jpg')}
+        style={styles.background}
+        resizeMode="cover"
+        onLoadEnd={() => setImageLoaded(true)}
+      >
         <StatusBar style="light" />
         <View style={styles.overlay} />
         <View style={styles.container}>
-            <Text style={styles.title}>Login</Text>
-            <TextInput
-                placeholder="Username"
-                value={username}
-                onChangeText={setUsername}
-                style={styles.input}
-                placeholderTextColor="#666"
-            />
-            <TextInput
-                placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
-                style={styles.input}
-                secureTextEntry
-                placeholderTextColor="#666"
-            />
-            <TouchableOpacity style={styles.button} onPress={() => {/* TODO: call login */}}>
-                <Text style={styles.buttonText}>Login</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-                <Text style={styles.textLink}>If you don't have an account, register here</Text>
-            </TouchableOpacity>
+          <Text style={styles.title}>Login</Text>
+
+          <TextInput
+            placeholder="Username"
+            value={username}
+            onChangeText={setUsername}
+            style={styles.input}
+            placeholderTextColor="#666"
+          />
+          <TextInput
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            style={styles.input}
+            secureTextEntry
+            placeholderTextColor="#666"
+          />
+
+          <TouchableOpacity style={styles.button} onPress={() => {/* TODO: call login */}}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.textLink}>If you don't have an account, register here</Text>
+          </TouchableOpacity>
         </View>
-    </ImageBackground>
-    );
+      </ImageBackground>
+    </>
+  );
 };
 
 export const styles = StyleSheet.create({
@@ -95,6 +113,13 @@ export const styles = StyleSheet.create({
         color: '#000',
         textAlign: 'center',
         textDecorationLine: 'underline',
+    },  
+    loaderContainer: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        zIndex: 10,
     },
 });
 
