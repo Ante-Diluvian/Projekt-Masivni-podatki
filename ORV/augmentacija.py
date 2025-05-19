@@ -11,17 +11,17 @@ def process_img(path):
 
 def convolution(img, core):
     height, width = img.shape
-    j_core, j_core = core.shape
+    j_height, j_width = core.shape
 
-    pad_v = j_core // 2
-    pad_s = j_core // 2
+    pad_v = j_height // 2
+    pad_s = j_width // 2
       
     
-    expanded_image = np.pad(slika, ((pad_v, pad_v), (pad_s, pad_s)))
-    filtrated = np.zeros_like(slika, dtype=np.float32)
+    expanded_image = np.pad(img, ((pad_v, pad_v), (pad_s, pad_s)))
+    filtrated = np.zeros_like(img, dtype=np.float32)
     for i in range(height):
         for j in range(width):
-            filtrated[i, j] = np.sum(expanded_image[i:i+j_core, j:j+j_core] * core)
+            filtrated[i, j] = np.sum(expanded_image[i:i+j_height, j:j+j_width] * core)
     
     return filtrated
     pass
@@ -64,7 +64,7 @@ def rotate_img(img, angle):
             y1 = round(y1 + y)
 
             if 0 <= x1 < width and 0 <= y1 < height:
-                rotated_img[i, j] = slika[y1, x1]
+                rotated_img[i, j] = img[y1, x1]
 
     return rotated_img
     pass
@@ -87,24 +87,23 @@ def mirror_img(img):
     pass
 
 def move_img(img, x, y):
-     height,width = img.shape
-    translirana = np.zeros_like(img)
+    height,width = img.shape
+    move = np.zeros_like(img)
+    for i in range(height):
+        for j in range(width):
+            new_i = i - y
+            new_j = j - x
 
-    for i in range(visina):
-        for j in range(sirina):
-            novi_i = i - y
-            novi_j = j - x
+            if 0 <= new_i < height and 0 <= new_j < width:
+                move[i, j] = img[new_i, new_j]
 
-            if 0 <= novi_i < visina and 0 <= novi_j < sirina:
-                translirana[i, j] = img[novi_i, novi_j]
-
-    return translirana
+    return move
 
     pass
 #endregion
 
 if __name__ == "__main__":
-    slika = process_img("test/clovek.jpg")
+    slika = process_img("test/clovek2.jpg")
     slika = cv.resize(slika,(300,500))
     slika = filter_with_gausso_core(slika,2)
     slika = linearize_img(slika)
@@ -112,7 +111,7 @@ if __name__ == "__main__":
     rot_slika = rotate_img(slika,45)
     svetlost_slike = change_brightness(slika,100)
     zrcali_sliko = mirror_img(slika)
-    slika1 = move_img(slika,50,50)
+    slika1 = move_img(slika,50,-50)
 
     if slika is None:
         print("Napaka: Slika ni bila naloÅ¾ena. Preveri pot do slike.")
