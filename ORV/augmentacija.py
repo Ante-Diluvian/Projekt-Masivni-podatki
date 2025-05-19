@@ -47,16 +47,41 @@ def lineariziraj_sivine(slika):
     return linearizirana.astype(np.uint8)
 #endregion
 
+#region Augmentacija podatkov
+def rotiraj_slika(slika, kot):
+    radiani = math.radians(kot)
+    rotirana_slika = np.zeros(slika.shape, dtype=np.uint8)
+    height, width = slika.shape
+
+    x = width // 2
+    y = height // 2
+    for i in range(height):
+        for j in range(width):
+            x1 = (j - x) * math.cos(radiani) - (i - y) * math.sin(radiani)
+            y1 = (j - x) * math.sin(radiani) + (i - y) * math.cos(radiani)
+
+            x1 = round(x1 + x)
+            y1 = round(y1 + y)
+
+            if 0 <= x1 < width and 0 <= y1 < height:
+                rotirana_slika[i, j] = slika[y1, x1]
+
+    return rotirana_slika
+    pass
+#endregion
+
 if __name__ == "__main__":
     slika = procesiraj_sliko("test/clovek.jpg")
     slika = cv.resize(slika,(500,700))
     slika = filtriraj_z_gaussovim_jedrom(slika,2)
     slika = lineariziraj_sivine(slika)
+    rot_slika = rotiraj_slika(slika,-180)
     if slika is None:
         print("Napaka: Slika ni bila naloÅ¾ena. Preveri pot do slike.")
     else:
         while True:  
             cv.imshow('Slika', slika.astype(np.uint8))
+            cv.imshow('Rot Slika', rot_slika)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
 
