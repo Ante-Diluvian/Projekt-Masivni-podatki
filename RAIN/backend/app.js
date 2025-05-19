@@ -6,6 +6,8 @@ var logger = require('morgan');
 var mongoose = require('mongoose');
 var session = require('express-session');
 var cors = require('cors');
+
+
 //Routes
 var userRoutes = require('./routes/userRoutes');
 var gpsRoutes = require('./routes/gpsRoutes');
@@ -97,5 +99,7 @@ const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Aplikacija teče na http://localhost:${port}`);
 });
+
+require('./controllers/mqttHandler');
 
 module.exports = app;
