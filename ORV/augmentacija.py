@@ -68,6 +68,15 @@ def rotiraj_slika(slika, kot):
 
     return rotirana_slika
     pass
+
+def spremeni_svetlost(slika, faktor):
+    svetla_slika = slika.astype(np.float32) + faktor
+    svetla_slika = np.clip(svetla_slika, 0, 255)
+    return svetla_slika.astype(np.uint8)
+    pass
+
+
+
 #endregion
 
 if __name__ == "__main__":
@@ -75,13 +84,15 @@ if __name__ == "__main__":
     slika = cv.resize(slika,(500,700))
     slika = filtriraj_z_gaussovim_jedrom(slika,2)
     slika = lineariziraj_sivine(slika)
-    rot_slika = rotiraj_slika(slika,-180)
+    rot_slika = rotiraj_slika(slika,45)
+    svetlost_slike = spremeni_svetlost(rot_slika,-100)
     if slika is None:
         print("Napaka: Slika ni bila naloÅ¾ena. Preveri pot do slike.")
     else:
         while True:  
             cv.imshow('Slika', slika.astype(np.uint8))
             cv.imshow('Rot Slika', rot_slika)
+            cv.imshow('Svetla slika', svetlost_slike)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
 
