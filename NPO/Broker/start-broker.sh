@@ -6,28 +6,40 @@ CONFIG_DIR="./config"
 PASSWD_FILE="$CONFIG_DIR/passwd"
 ACL_FILE="$CONFIG_DIR/acl"
 USERNAME="app_guest"
+PASSWORD="fentanyl"
 
 echo "🔧 Starting Mosquitto broker with Docker Compose..."
 docker-compose up -d
 
 sleep 2
 
-# 1. Ustvari passwd datoteko, če še ne obstaja
+# 1. Ustvari passwd datoteko (samo 1 uporabnik)
 if [ ! -f "$PASSWD_FILE" ]; then
-  echo "🆕 Creating new password file..."
+  echo "🆕 Creating password file and adding user '$USERNAME'..."
   docker run --rm -v "$(pwd)/config:/mosquitto/config" eclipse-mosquitto \
-    mosquitto_passwd -c /mosquitto/config/passwd "$USERNAME"
+    mosquitto_passwd -b -c /mosquitto/config/passwd "$USERNAME" "$PASSWORD"
 else
   if grep -q "^$USERNAME:" "$PASSWD_FILE"; then
-    echo "✅ User '$USERNAME' already exists."
+    echo "✅ User '$USERNAME' already exists in passwd file."
   else
-    echo "➕ Adding user '$USERNAME'..."
+    echo "➕ Adding user '$USERNAME' to existing passwd file..."
     docker run --rm -v "$(pwd)/config:/mosquitto/config" eclipse-mosquitto \
-      mosquitto_passwd /mosquitto/config/passwd "$USERNAME"
+      mosquitto_passwd -b /mosquitto/config/passwd "$USERNAME" "$PASSWORD"
   fi
 fi
 
-# 2. Ustvari acl datoteko, če še ne obstaja
+# 1b. Popravi pravice znotraj kontejnerja
+echo "🔐 Fixing permissions..."
+sudo chown root:root ./config/acl
+sudo chmod 0600 ./config/acl
+sudo chown root:root ./config/passwd
+sudo chmod 0600 ./config/passwd
+docker exec mosquitto chown root:root /mosquitto/config/passwd || true
+docker exec mosquitto chmod 0600 /mosquitto/config/passwd || true
+docker exec mosquitto chown root:root /mosquitto/config/acl || true
+docker exec mosquitto chmod 0600 /mosquitto/config/acl || true
+
+# 2. Ustvari ACL datoteko, če še ne obstaja
 if [ ! -f "$ACL_FILE" ]; then
   echo "🆕 Creating new ACL file..."
   cat <<EOF > "$ACL_FILE"
@@ -35,7 +47,7 @@ if [ ! -f "$ACL_FILE" ]; then
 user $USERNAME
 topic write app/register
 topic write app/login
-topic read  app/response/$USERNAME
+topic read  app/response/#
 EOF
 else
   echo "✅ ACL file already exists."
@@ -62,4 +74,4 @@ echo " - WebSocket URI: ws://$PUBLIC_IP:9001"
 echo ""
 echo "🔐 Test user credentials:"
 echo " - Username: $USERNAME"
-echo " - Password: (entered manually during creation)"
+echo " - Password: $PASSWORD"
