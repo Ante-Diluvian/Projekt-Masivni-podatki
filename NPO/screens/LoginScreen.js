@@ -1,51 +1,40 @@
 import React, { useState } from 'react';
 import { login } from '../api/auth';
-import { useNavigate } from 'react-router-dom';
+import { View, Text, TextInput, Button, TouchableOpacity } from 'react-native';
 
-const LoginScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+const LoginScreen = ({ navigation }) => {
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
 
     //TODO: Logiko za prijavo uporabnika
 
     return (
-    <div>
-        <h2>Prijava</h2>
-        <form onSubmit={handleSubmit}>
-            <div>
-            <label>Email:</label>
-            <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-            />
-            </div>
+        <View style={{ padding: 20 }}>
+        <Text style={{ fontSize: 24, marginBottom: 20 }}>Prijava</Text>
 
-            <div>
-            <label>Geslo:</label>
-            <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-            />
-            </div>
+        <Text>Username:</Text>
+        <TextInput
+            value={username}
+            onChangeText={setUsername}
+            style={{ borderWidth: 1, marginBottom: 10, padding: 8 }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+        />
 
-            <button type="submit">Prijavi se</button>
-        </form>
+        <Text>Geslo:</Text>
+        <TextInput
+            value={password}
+            onChangeText={setPassword}
+            style={{ borderWidth: 1, marginBottom: 10, padding: 8 }}
+            secureTextEntry
+        />
 
-        <p>
-            Nimate računa?{' '}
-            <span
-            style={{ color: 'blue', cursor: 'pointer' }}
-            onClick={() => navigate('/register')}
-            >
-            Registrirajte se
-            </span>
-        </p>
-    </div>
+        <Button title="Prijava"/>
+
+        <TouchableOpacity onPress={() => navigation.navigate('Register')} style={{ marginTop: 20 }}>
+            <Text>Še nimate računa? Registrirajte se</Text>
+        </TouchableOpacity>
+        </View>
     );
 };
 
