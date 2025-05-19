@@ -18,7 +18,7 @@ const RegisterScreen = ({ navigation }) => {
         )}
 
         <ImageBackground
-            source={require('../assets/images/register-background.jpg')}
+            source={require('../assets/images/auth-background.jpg')}
             style={styles.background}
             resizeMode="cover"
             onLoadEnd={() => setImageLoaded(true)}

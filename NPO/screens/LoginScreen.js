@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, TextInput, Button, TouchableOpacity, Image, ImageBackground, StyleSheet, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { login } from '../api/auth';
+import mqtt from 'mqtt'; 
 
 const LoginScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');
@@ -10,6 +12,20 @@ const LoginScreen = ({ navigation }) => {
     const [imageLoaded, setImageLoaded] = useState(false);
 
     //TODO: Logiko za prijavo uporabnika
+    const handleLogin = async () => {
+      if (!username.trim() || !password.trim()) {
+        Alert.alert('Error', 'Please fill in all fields');
+        return;
+      }
+
+      try {
+        const data = await login(username, password);
+        navigation.navigate('Home');
+      } catch (error) {
+        console.error('Login Error Details:', error);
+        Alert.alert('Login failed', error.response?.data?.message || 'Unknown error');
+      }
+    };
 
     return (
     <>
@@ -20,7 +36,7 @@ const LoginScreen = ({ navigation }) => {
       )}
 
       <ImageBackground
-        source={require('../assets/images/login-background.jpg')}
+        source={require('../assets/images/auth-background.jpg')}
         style={styles.background}
         resizeMode="cover"
         onLoadEnd={() => setImageLoaded(true)}
@@ -46,7 +62,7 @@ const LoginScreen = ({ navigation }) => {
             placeholderTextColor="#666"
           />
 
-          <TouchableOpacity style={styles.button} onPress={() => {/* TODO: call login */}}>
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
 
@@ -74,7 +90,7 @@ export const styles = StyleSheet.create({
     container: {
         width: '85%',
         padding: 20,
-        backgroundColor: 'rgba(255,255,255,0.8)',
+        backgroundColor: 'rgba(255,255,255,0.85)',
         borderRadius: 10,
         elevation: 5,
         shadowColor: '#000',
