@@ -86,6 +86,21 @@ def mirror_img(img):
     return copy_img
     pass
 
+def move_img(img, x, y):
+     height,width = img.shape
+    translirana = np.zeros_like(img)
+
+    for i in range(visina):
+        for j in range(sirina):
+            novi_i = i - y
+            novi_j = j - x
+
+            if 0 <= novi_i < visina and 0 <= novi_j < sirina:
+                translirana[i, j] = img[novi_i, novi_j]
+
+    return translirana
+
+    pass
 #endregion
 
 if __name__ == "__main__":
@@ -95,8 +110,9 @@ if __name__ == "__main__":
     slika = linearize_img(slika)
 
     rot_slika = rotate_img(slika,45)
-    svetlost_slike = change_brightness(rot_slika,-180)
+    svetlost_slike = change_brightness(slika,100)
     zrcali_sliko = mirror_img(slika)
+    slika1 = move_img(slika,50,50)
 
     if slika is None:
         print("Napaka: Slika ni bila naloÅ¾ena. Preveri pot do slike.")
@@ -106,6 +122,7 @@ if __name__ == "__main__":
             cv.imshow('Rot Slika', rot_slika)
             cv.imshow('Svetla slika', svetlost_slike)
             cv.imshow("zrcali", zrcali_sliko)
+            cv.imshow("move image", slika1)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
 
