@@ -1,16 +1,17 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
-//Navigation
+// Navigation
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-//Screens
+// Icons
+import { Ionicons } from '@expo/vector-icons';
+
+// Screens
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
-//import MainScreen from './screens/MainScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -24,12 +25,50 @@ function LoginStack() {
   );
 }
 
+const tabBarOptions = {
+  tabBarActiveTintColor: '#000000',
+  tabBarInactiveTintColor: 'gray',
+  tabBarStyle: {
+    backgroundColor: '#fff',
+    height: 60,
+    borderTopWidth: 0,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: -2 },
+    shadowRadius: 8,
+    paddingBottom: 5,
+    paddingTop: 5,
+  },
+  tabBarLabelStyle: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+};
+
 export default function App() {
   return (
-    <NavigationContainer>
-      <Tab.Navigator screenOptions={{ headerShown: false }}>
-        <Tab.Screen name="Login" component={LoginStack} />
-      </Tab.Navigator>
-    </NavigationContainer>
+    <>
+      <StatusBar style="dark" />
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            headerShown: false,
+            ...tabBarOptions,
+            tabBarIcon: ({ focused, color, size }) => {
+              let iconName;
+
+              if (route.name === 'LoginTab') {
+                iconName = focused ? 'log-in' : 'log-in-outline';
+              }
+
+              return <Ionicons name={iconName} size={size} color={color} />;
+            },
+          })}
+        >
+          <Tab.Screen name="LoginTab" component={LoginStack} options={{ tabBarLabel: 'Login' }} />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </>
   );
 }
