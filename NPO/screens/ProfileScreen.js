@@ -1,0 +1,95 @@
+import React from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+const ProfileScreen = ({ navigation }) => {
+    //TODO: Fetch user data from AsyncStorage, logout
+
+    return (
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <Ionicons name="chevron-back" size={28} color="#FF3B3F" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Profil uporabnika</Text>
+            </View>
+
+            <View style={styles.content}>
+                <View style={styles.infoRow}>
+                    <Text style={styles.label}>Uporabniško ime:</Text>
+                    <Text style={styles.value}>{user.username}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                    <Text style={styles.label}>Email:</Text>
+                    <Text style={styles.value}>{user.email}</Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                    <Text style={styles.label}>Geslo:</Text>
+                    <Text style={styles.value}>{user.password}</Text>
+                </View>
+            </View>
+
+            <View style={styles.logoutContainer}>
+                <TouchableOpacity style={styles.logoutButton}>
+                    <Text style={styles.logoutText}>Logout</Text>
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
+    );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+    padding: 20,
+    justifyContent: 'space-between',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  backButton: {
+    paddingRight: 10,
+    paddingVertical: 5,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FF3B3F',
+  },
+  content: {
+    flex: 1,
+  },
+  infoRow: {
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 18,
+    color: '#bbb',
+  },
+  value: {
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  logoutContainer: {
+    alignItems: 'center',
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B3F',
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    borderRadius: 30,
+  },
+  logoutText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+});
+
+export default ProfileScreen;

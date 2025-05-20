@@ -1,55 +1,82 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-const MainScreen = () => {
+const MainScreen = ({ navigation }) => {
   // Za zdaj samo prikaz placeholderjev za GPS in akselerometer
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Home Screen</Text>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={{ marginTop:12 }}>
+          <Text style={styles.title}>READY TO</Text>
+          <Text style={styles.subtitle}>WORKOUT</Text>
+        </View>
 
-      <View style={styles.section}>
-        <Text style={styles.title}>GPS Location:</Text>
-        <Text style={styles.placeholder}>Latitude: --</Text>
-        <Text style={styles.placeholder}>Longitude: --</Text>
-        <Text style={styles.placeholder}>Altitude: --</Text>
+        <View style={styles.rightSection}>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <Image
+              source={require('../assets/images/auth-background.jpg')}
+              style={styles.avatar}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => {}} style={styles.bellWrapper}>
+            <Ionicons name="notifications-outline" size={22} color="#bbb" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.title}>Accelerometer Data:</Text>
-        <Text style={styles.placeholder}>x: --</Text>
-        <Text style={styles.placeholder}>y: --</Text>
-        <Text style={styles.placeholder}>z: --</Text>
+      {/* Glavna vsebina */}
+      <View style={styles.content}>
+        <Text>Tu pride vsebina aplikacije...</Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: 20, 
-    backgroundColor: '#fff',
-    justifyContent: 'center',
+  container: {
+    backgroundColor: '#1C1C1E',
+    flex: 1,
   },
-  header: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    marginBottom: 30, 
-    textAlign: 'center',
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  section: {
-    marginBottom: 40,
+  title: {
+    fontSize: 34,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
-  title: { 
-    fontSize: 20, 
-    fontWeight: '600', 
+  subtitle: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#FF3B3F',
+  },
+  rightSection: {
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     marginBottom: 10,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
-  placeholder: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 4,
+  bellWrapper: {
+    backgroundColor: '#f0f0f0',
+    padding: 10,
+    borderRadius: 25,
+  },
+  content: {
+    marginTop: 20,
+    paddingHorizontal: 20,
   },
 });
 
