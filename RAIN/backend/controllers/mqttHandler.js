@@ -1,7 +1,7 @@
 const mqtt = require('mqtt');
 const userController = require('./userController');
 
-const client = mqtt.connect('mqtt://localhost:1883', {
+const client = mqtt.connect('ws://194.163.176.154:9001', {
   username: 'app_guest',
   password: 'fentanyl'
 });
@@ -9,64 +9,38 @@ const client = mqtt.connect('mqtt://localhost:1883', {
 client.on('connect', () => {
   console.log('✅ Connected to MQTT broker');
 
-  client.subscribe('app/register');
-  client.subscribe('app/login');
-
-  console.log('Subscribed to: app/register, app/login');
+  client.subscribe("app/workout", (err, granted) => {
+    if (err) {
+      console.error("Subscribe error:", err);
+    } else {
+      console.log("Subscribed to:", granted.map(g => g.topic).join(', '));
+    }
+  });
 });
+client.on('message', (topic, messageBuffer) => {
+  if (topic === "app/workout") {
+    try {
+      const message = JSON.parse(messageBuffer.toString());
+      const { username, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie } = message;
+      console.log('Received exercise data:', message);
 
-client.on('message', async (topic, message) => {
-  let data;
-
-  try {
-    data = JSON.parse(message.toString());
-  } catch (err) {
-    console.error('Invalid JSON received');
-    return;
-  }
-
-  console.log(`Incoming message on topic "${topic}":`, data);
-
-
-  const resSimulator = {
-    statusCode: 200,
-    status: function(code) {
-      this.statusCode = code;
-      return this;
-    },
-    json: function(responseData) {
-      const payload = {
-        status: this.statusCode,
-        data: responseData
-      };
-      client.publish(`app/response/${data.username}`, JSON.stringify(payload));
-      console.log(`Responded via MQTT:`, payload);
+    } catch (err) {
+      console.error('Failed to parse MQTT message:', err);
     }
-  };
-
-
-  const reqSimulator = {
-    body: data,
-    session: {}
-  };
-
-  try {
-    switch (topic) {
-      case 'app/register':
-        await userController.create(reqSimulator, resSimulator);
-        break;
-
-      case 'app/login':
-        await userController.login(reqSimulator, resSimulator, (err) => {
-          resSimulator.status(401).json({ error: err.message || 'Login failed' });
-        });
-        break;
-
-      default:
-        console.warn('Unknown topic:', topic);
-    }
-  } catch (err) {
-    console.error('Error handling MQTT message:', err);
-    resSimulator.status(500).json({ error: 'Internal server error' });
   }
 });
+  client.on('error', (err) => {
+    console.error('MQTT error:', err);
+  });
+  
+  client.on('offline', () => {
+    console.log('MQTT client offline');
+  });
+  
+  client.on('close', () => {
+    console.log('MQTT client closed connection');
+  }); 
+
+  client.on('reconnect', () => {
+    console.log('MQTT client reconnecting...');
+  });

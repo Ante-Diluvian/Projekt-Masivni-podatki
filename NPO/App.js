@@ -4,6 +4,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkLoginStatus } from './api/auth';
 
+//mqtt
+import { initMqttClient  } from './MqttContext';
+
 // Navigation
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -65,6 +68,7 @@ export default function App() {
 
   useEffect(() => {
     getData();
+    initMqttClient();
   }, []);
 
   if (isLoading)

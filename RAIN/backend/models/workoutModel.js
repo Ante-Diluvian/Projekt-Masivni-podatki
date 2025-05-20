@@ -6,6 +6,10 @@ var workoutSchema = new Schema({
         type: String,
         required: true
     },
+    user_id : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "User"
+    },
 	accelerometer : {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Accelerometer'
@@ -37,4 +41,4 @@ var workoutSchema = new Schema({
 
 });
 
-module.exports = mongoose.model('gps', gpsSchema);
+module.exports = mongoose.model('Workout', workoutSchema);
