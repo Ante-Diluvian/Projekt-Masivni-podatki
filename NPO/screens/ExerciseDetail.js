@@ -1,9 +1,10 @@
 import React, {  useState, useRef } from 'react';
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { requestPermissionsAsync, Accelerometer } from 'expo-sensors';
-import { Alert } from 'react-native';
+import { Accelerometer } from 'expo-sensors';
+import { Alert, Linking  } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
+import * as Location from 'expo-location';
 
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
@@ -15,15 +16,22 @@ export default function ExerciseDetail({ route, navigation }) {
     const [speed, setSpeed] = useState(0);
     const [avgSpeed, setAvgSpeed] = useState(0);
     const [maxSpeed, setMaxSpeed] = useState(0);
+    const [location,setLocation] = useState({latitude:null, longitude:null, altitude:null})
 
     const totalSpeed = useRef(0);
-    const readingCount = useRef(0)
+    const readingCount = useRef(0);
+    const locationSubscription = useRef(null);
     
     useKeepAwake(status ==='running' ? 'exercise-session' : null);
 //#region Speed
     const handleStart = async  () =>{ 
         const granted = await requestAccelerometerPermission();
-        if (!granted) return;
+        const locationPermission = await requestLocationPermission();
+
+        if (!granted || !locationPermission){ 
+            setStatus('idle');
+            return;
+        }
         setStatus('running');
         startExercise();
     }
@@ -37,38 +45,53 @@ export default function ExerciseDetail({ route, navigation }) {
     }
 
     const startExercise = async () => {
-        if (accelerometerSubscription.current) return;
+            if (accelerometerSubscription.current) return;
 
-        Accelerometer.setUpdateInterval(100);
+            Accelerometer.setUpdateInterval(100);
 
-        accelerometerSubscription.current = Accelerometer.addListener(accelData => {
-            const magnitude = Math.sqrt(
-            accelData.x ** 2 + accelData.y ** 2 + accelData.z ** 2
-        );
-    
-        const netAccel = Math.abs(magnitude - 1); 
-        const estimatedSpeed = netAccel * 3; 
+            accelerometerSubscription.current = Accelerometer.addListener(accelData => {
+                const magnitude = Math.sqrt(
+                accelData.x ** 2 + accelData.y ** 2 + accelData.z ** 2
+            );
         
-        setSpeed(estimatedSpeed.toFixed(2)); 
-        
-        totalSpeed.current += estimatedSpeed;
-        readingCount.current += 1;
-        const newAvg = totalSpeed.current / readingCount.current;
+            const netAccel = Math.abs(magnitude - 1); 
+            const estimatedSpeed = netAccel * 3; 
 
-        setMaxSpeed(prevMax => {
-          const newMax = Math.max(prevMax, estimatedSpeed);
-          return newMax.toFixed(2);
+            setSpeed(estimatedSpeed.toFixed(2)); 
+
+            totalSpeed.current += estimatedSpeed;
+            readingCount.current += 1;
+            const newAvg = totalSpeed.current / readingCount.current;
+
+            setMaxSpeed(prevMax => {
+              const newMax = Math.max(prevMax, estimatedSpeed);
+              return newMax.toFixed(2);
+            });
+
+            setAvgSpeed(newAvg.toFixed(2));
+            setAccelerometer(accelData);
         });
-        
-        setAvgSpeed(newAvg.toFixed(2));
-        setAccelerometer(accelData);
-    });
+        locationSubscription.current = await Location.watchPositionAsync({
+            accuracy: Location.Accuracy.High,
+            distanceInterval: 1, 
+        },
+        (newLocation) => {
+            const { latitude, longitude, altitude } = newLocation.coords;
+            setLocation({ latitude, longitude, altitude });
+            if (newLocation.coords.speed) {
+                setSpeed(newLocation.coords.speed.toFixed(2));
+            }
+        });
     }
 
     const pauseExercise = async () => {
        if (accelerometerSubscription.current) {
             accelerometerSubscription.current.remove();
             accelerometerSubscription.current = null;
+        }
+        if (locationSubscription.current) {
+            locationSubscription.current.remove();
+            locationSubscription.current = null;
         }
     }
 
@@ -77,9 +100,14 @@ export default function ExerciseDetail({ route, navigation }) {
             accelerometerSubscription.current.remove();
             accelerometerSubscription.current = null;
         }
+        if (locationSubscription.current) {
+            locationSubscription.current.remove();
+            locationSubscription.current = null;
+        }
     }
 //#endregion
 
+//#region Alert
     const alertStop = () => {
         handlePause();
 
@@ -101,24 +129,57 @@ export default function ExerciseDetail({ route, navigation }) {
         )
     }
     const requestAccelerometerPermission = async () => {
-        try {
-            const { status } = await Accelerometer.requestPermissionsAsync();
-            if (status !== 'granted') {
+    const { status, canAskAgain } = await Accelerometer.getPermissionsAsync();
+
+    if (status !== 'granted') {
+        const { status: newStatus } = await Accelerometer.requestPermissionsAsync();
+
+        if (newStatus !== 'granted') {
+            Alert.alert(
+                "Motion Permission Required",
+                "Motion sensor permission is needed to track your activity. Please enable it in settings.",
+                [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                        text: "Open Settings",
+                        onPress: () => Linking.openSettings(),
+                    },
+                ]
+            );
+            return false;
+        }
+    }
+
+    return true;
+    };
+
+    const requestLocationPermission = async () => {
+         const { status, canAskAgain } = await Location.getForegroundPermissionsAsync();
+
+        if (status !== 'granted') {
+            const { status: newStatus } = await Location.requestForegroundPermissionsAsync();
+
+            if (newStatus !== 'granted') {
                 Alert.alert(
-                    "Permission required",
-                    "Permission to access motion sensors is required to track speed.",
-                    [{ text: "OK" }]
+                    "Location Permission Required",
+                    "Location access is required for tracking. Please enable it in settings.",
+                    [
+                        { text: "Cancel", style: "cancel" },
+                        {
+                            text: "Open Settings",
+                            onPress: () => Linking.openSettings(),
+                        },
+                    ]
                 );
                 return false;
             }
-            return true;
-        } catch (error) {
-            console.warn("Permission error: ", error);
-            Alert.alert("Error", "Could not request accelerometer permission.");
-            return false;
         }
+
+        return true;
     };
-    return (
+//#endregion
+   
+return (
     <View style={styles.container}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={20} color="#fff" />
@@ -139,7 +200,12 @@ export default function ExerciseDetail({ route, navigation }) {
             <Text style={styles.detail}>Calories: {exercise.caloriesBurned}</Text>
             <Text style={styles.detail}>Distance: {exercise.distance} m</Text>
         </View>
-        
+        <View style={styles.speedContainer}>
+            <Text>GPS</Text>
+            <Text>Logitude {location.longitude ?? '---'}</Text>
+            <Text>Lagitude {location.latitude ?? '---'}</Text>
+            <Text>Altitude {location.altitude ?? '---'}</Text>
+        </View>
         <View style={styles.speedContainer}>
             <Text style={styles.speedTitle}>SPEED METRICS</Text>
             <View style={styles.speedRow}>
