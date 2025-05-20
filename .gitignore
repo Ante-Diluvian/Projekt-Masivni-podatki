@@ -1,0 +1,16 @@
+dataset/
+
+myenv/
+
+__pycache__/
+*.pyc
+*.pyo
+*.py[cod]
+
+.ipynb_checkpoints/
+
+.DS_Store
+
+.vscode/
+.idea/
+*.swp
