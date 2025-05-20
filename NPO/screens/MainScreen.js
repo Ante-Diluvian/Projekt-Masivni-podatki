@@ -2,6 +2,9 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+//Excercise komponente
+import Exercises from '../components/Exercises';
+
 const MainScreen = ({ navigation }) => {
   // Za zdaj samo prikaz placeholderjev za GPS in akselerometer
 
@@ -30,7 +33,7 @@ const MainScreen = ({ navigation }) => {
 
       {/* Glavna vsebina */}
       <View style={styles.content}>
-        <Text>Tu pride vsebina aplikacije...</Text>
+        <Exercises/>
       </View>
     </SafeAreaView>
   );
@@ -77,6 +80,7 @@ const styles = StyleSheet.create({
   content: {
     marginTop: 20,
     paddingHorizontal: 20,
+    flex: 1,
   },
 });
 
