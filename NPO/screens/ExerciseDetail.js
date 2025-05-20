@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Accelerometer } from 'expo-sensors';
@@ -10,14 +10,30 @@ export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
     const [status, setStatus] = useState('idle'); // idle, running, paused
     const [{x, y, z},setAccelerometer] = useState({x: 0, y:0, z:0})
+    const accelerometerSubscription = useRef(null);
 
-    const handleStart = () => setStatus('running');
-    const handlePause = () => setStatus('paused');
+    const handleStart = () =>{ 
+        setStatus('running');
+        startExercise();
+    }
+    const handlePause = () => {
+        setStatus('paused');
+        pauseExercise();
+    }
     const handleStop = () => setStatus('idle');
 
     const startExercise = async () => {
-        const subscription = Accelerometer.addListener(setAccelerometer);
-        return () => subscription.remove()
+        if (accelerometerSubscription.current) return;
+         
+        accelerometerSubscription.current = Accelerometer.addListener(accelData => {
+            setAccelerometer(accelData);
+        });
+    }
+    const pauseExercise = async () => {
+       if (accelerometerSubscription.current) {
+            accelerometerSubscription.current.remove();
+            accelerometerSubscription.current = null;
+        }
     }
 
   return (
@@ -53,11 +69,11 @@ export default function ExerciseDetail({ route, navigation }) {
         </View>
 
         <View style={styles.buttonRow}>
-            <TouchableOpacity onPress={startExercise} style={[styles.button, status === 'running' && styles.buttonActive]} /* TODO: onPress={handleStart} */ >
+            <TouchableOpacity onPress={handleStart} style={[styles.button, status === 'running' && styles.buttonActive]} /* TODO: onPress={handleStart} */ >
                 <Text style={styles.buttonText}>Start</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.button, status === 'paused' && styles.buttonActive]} /* TODO: onPress={handlePause} */ >
+            <TouchableOpacity onPress={handlePause} style={[styles.button, status === 'paused' && styles.buttonActive]} /* TODO: onPress={handlePause} */ >
                 <Text style={styles.buttonText}>Pause</Text>
             </TouchableOpacity>
 
