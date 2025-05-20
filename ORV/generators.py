@@ -21,15 +21,33 @@ class ImageDataGenerator(tf.keras.utils.Sequence):
     def __len__(self):
         #Return the number of batches per epoch
         return int(np.ceil(len(self.image_paths) / self.batch_size))
-        pass
 
     def __getitem__(self, idx):
         #Generate one batch of data
-        pass
+        batch_x = self.image_paths[idx * self.batch_size:(idx + 1) * self.batch_size]
+        batch_y = self.labels[idx * self.batch_size:(idx + 1) * self.batch_size]
+        
+        images = []
+        for path in batch_x:
+            img = cv.imread(path)
+            img = process_img(img)
+            img = cv.resize(img, self.image_size)
+            img = img.astype(np.float32) / 255.0
+
+            if self.augment:
+                img = self.augment_image(img)
+
+            images.append(img)
+        
+        return np.array(images), np.array(batch_y)
     
     def on_epoch_end(self):
         #Updates the indexes after each epoch
-        pass
+        if self.shuffle:
+            indices = np.arange(len(self.image_paths))
+            np.random.shuffle(indices)
+            self.image_paths = [self.image_paths[i] for i in indices]
+            self.labels = [self.labels[i] for i in indices]
 
     def load_image(self, path):
         #Load and preprocess the image
