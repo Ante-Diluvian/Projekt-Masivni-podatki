@@ -30,7 +30,6 @@ class ImageDataGenerator(tf.keras.utils.Sequence):
         images = []
         for path in batch_x:
             img = cv.imread(path)
-            img = process_img(img)
             img = cv.resize(img, self.image_size)
             img = img.astype(np.float32) / 255.0
 
