@@ -3,7 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, TextInput, Button, TouchableOpacity, Image, ImageBackground, StyleSheet, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { login } from '../api/auth';
-import mqtt from 'mqtt'; 
 
 const LoginScreen = ({ navigation }) => {
     const [username, setUsername] = useState('');

@@ -154,5 +154,16 @@ module.exports = {
                 }
             });
         }
+    },
+
+    me: function(req, res){
+        if(!req.session.userId)
+            return res.status(401).json({message: 'Unauthorized'});
+        
+        UserModel.findById(req.session.userId, function(err, user){
+            if(err || !user)
+                return res.status(401).json({message: 'Unauthorized'});   
+            return res.json(user);
+        });
     }
 };

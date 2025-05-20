@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { checkLoginStatus } from './api/auth';
 
 // Navigation
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -20,6 +22,7 @@ const Stack = createNativeStackNavigator();
 function LoginStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: false, animation: 'fade' }}>
+      <Stack.Screen name="Home" component={MainScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
@@ -48,32 +51,40 @@ const tabBarOptions = {
 };
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+      const verifySession = async () => {
+        const user = await checkLoginStatus();
+        setIsAuthenticated(!!user);
+        setIsLoading(false);
+      };
+      verifySession();
+  }, []);
+
+  if (isLoading) 
+    return null;
+
   return (
     <>
-      <StatusBar style="dark" />
-      <NavigationContainer>
+    <StatusBar style="dark" />
+    <NavigationContainer>
+      {isAuthenticated ? (
         <Tab.Navigator
-          screenOptions={({ route }) => ({
+          screenOptions={{
             headerShown: false,
-            ...tabBarOptions,
-            tabBarIcon: ({ focused, color, size }) => {
-              let iconName;
-
-              if (route.name === 'LoginTab') {
-                iconName = focused ? 'log-in' : 'log-in-outline';
-              }
-              else if (route.name === 'Home') {
-                iconName = focused ? 'home' : 'home-outline';
-              }
-
-              return <Ionicons name={iconName} size={size} color={color} />;
-            },
-          })}
+            tabBarShowLabel: false,
+            tabBarIcon: () => null, //Brez ikon
+            tabBarStyle: { display: 'none' },
+          }}
         >
-          <Tab.Screen name="Home" component={MainScreen} options={{ tabBarLabel: 'Home' }} />
-          <Tab.Screen name="LoginTab" component={LoginStack} options={{ tabBarLabel: 'Login' }} />
+          <Tab.Screen name="HomeTab" component={MainScreen} />
         </Tab.Navigator>
-      </NavigationContainer>
+      ) : (
+        <LoginStack />
+      )}
+    </NavigationContainer>
     </>
   );
 }
