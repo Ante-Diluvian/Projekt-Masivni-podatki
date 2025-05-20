@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import React, {  useState, useRef } from 'react';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Accelerometer } from 'expo-sensors';
-import { StatusBar } from 'expo-status-bar';
+import { requestPermissionsAsync, Accelerometer } from 'expo-sensors';
 import { Alert } from 'react-native';
+import { useKeepAwake } from 'expo-keep-awake';
 
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
@@ -18,9 +18,12 @@ export default function ExerciseDetail({ route, navigation }) {
 
     const totalSpeed = useRef(0);
     const readingCount = useRef(0)
-    const currentMaxSpeed = useRef(0); 
+    
+    useKeepAwake(status ==='running' ? 'exercise-session' : null);
 //#region Speed
-    const handleStart = () =>{ 
+    const handleStart = async  () =>{ 
+        const granted = await requestAccelerometerPermission();
+        if (!granted) return;
         setStatus('running');
         startExercise();
     }
@@ -35,7 +38,7 @@ export default function ExerciseDetail({ route, navigation }) {
 
     const startExercise = async () => {
         if (accelerometerSubscription.current) return;
-        
+
         Accelerometer.setUpdateInterval(100);
 
         accelerometerSubscription.current = Accelerometer.addListener(accelData => {
@@ -97,7 +100,24 @@ export default function ExerciseDetail({ route, navigation }) {
             { cancelable: true }
         )
     }
-
+    const requestAccelerometerPermission = async () => {
+        try {
+            const { status } = await Accelerometer.requestPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert(
+                    "Permission required",
+                    "Permission to access motion sensors is required to track speed.",
+                    [{ text: "OK" }]
+                );
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.warn("Permission error: ", error);
+            Alert.alert("Error", "Could not request accelerometer permission.");
+            return false;
+        }
+    };
     return (
     <View style={styles.container}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -113,23 +133,31 @@ export default function ExerciseDetail({ route, navigation }) {
             <Text style={styles.title}>{exercise.name}</Text>
             </View>
         </ImageBackground>
-
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.infoSection}>
             <Text style={styles.detail}>Duration: {exercise.duration} min</Text>
             <Text style={styles.detail}>Calories: {exercise.caloriesBurned}</Text>
             <Text style={styles.detail}>Distance: {exercise.distance} m</Text>
         </View>
-
-        <View style={styles.sensorSection}>
-            <Text style={styles.sensorTitle}>Sensors (soon):</Text>
-            <Text style={styles.sensorText}>GPS:</Text>
-            <Text style={styles.sensorText}>Akcelerometer: ...</Text>
-            <Text style={styles.sensorText}>Speed: {speed} m/s</Text>
-            <Text style={styles.sensorText}>AVG speed: {avgSpeed} m/s</Text>
-            <Text style={styles.sensorText}>Max speed: {maxSpeed} m/s</Text>
-            <StatusBar style="auto" />
+        
+        <View style={styles.speedContainer}>
+            <Text style={styles.speedTitle}>SPEED METRICS</Text>
+            <View style={styles.speedRow}>
+                <View style={styles.speedBox}>
+                    <Text style={styles.speedLabel}>Current</Text>
+                    <Text style={styles.speedValue}>{speed} m/s</Text>
+                </View>
+                <View style={styles.speedBox}>
+                    <Text style={styles.speedLabel}>Average</Text>
+                    <Text style={styles.speedValue}>{avgSpeed} m/s</Text>
+                </View>
+                <View style={styles.speedBox}>
+                    <Text style={styles.speedLabel}>Max</Text>
+                    <Text style={styles.speedValue}>{maxSpeed} m/s</Text>
+                </View>
+            </View>
         </View>
-
+    </ScrollView>
         <View style={styles.buttonRow}>
             <TouchableOpacity onPress={handleStart} style={[styles.button, status === 'running' && styles.buttonActive]} /* TODO: onPress={handleStart} */ >
                 <Text style={styles.buttonText}>Start</Text>
@@ -243,5 +271,50 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: 'bold',
         fontSize: 18,
+    },
+    scrollContainer: {
+        paddingBottom: 100,  
+    },
+    speedContainer: {
+        backgroundColor: '#FF3B3F',
+        borderRadius: 12,
+        padding: 16,
+        marginHorizontal: 20,
+        marginTop: 40,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    speedTitle: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+        marginBottom: 12,
+        textAlign: 'center',
+    },
+    speedRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    speedBox: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 8,
+        padding: 12,
+        alignItems: 'center',
+        flex: 1,
+        marginHorizontal: 4,
+    },
+    speedLabel: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    speedValue: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: 'bold',
     },
 });
