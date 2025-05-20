@@ -3,8 +3,7 @@ import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ImageBackground
 import { Ionicons } from '@expo/vector-icons';
 import { Accelerometer } from 'expo-sensors';
 import { StatusBar } from 'expo-status-bar';
-
-
+import { Alert } from 'react-native';
 
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
@@ -15,10 +14,12 @@ export default function ExerciseDetail({ route, navigation }) {
 
     const [speed, setSpeed] = useState(0);
     const [avgSpeed, setAvgSpeed] = useState(0);
+    const [maxSpeed, setMaxSpeed] = useState(0);
 
     const totalSpeed = useRef(0);
     const readingCount = useRef(0)
-
+    const currentMaxSpeed = useRef(0); 
+//#region Speed
     const handleStart = () =>{ 
         setStatus('running');
         startExercise();
@@ -31,6 +32,7 @@ export default function ExerciseDetail({ route, navigation }) {
         setStatus('idle');
         stopExercise();
     }
+
     const startExercise = async () => {
         if (accelerometerSubscription.current) return;
         
@@ -49,6 +51,11 @@ export default function ExerciseDetail({ route, navigation }) {
         totalSpeed.current += estimatedSpeed;
         readingCount.current += 1;
         const newAvg = totalSpeed.current / readingCount.current;
+
+        setMaxSpeed(prevMax => {
+          const newMax = Math.max(prevMax, estimatedSpeed);
+          return newMax.toFixed(2);
+        });
         
         setAvgSpeed(newAvg.toFixed(2));
         setAccelerometer(accelData);
@@ -67,6 +74,28 @@ export default function ExerciseDetail({ route, navigation }) {
             accelerometerSubscription.current.remove();
             accelerometerSubscription.current = null;
         }
+    }
+//#endregion
+
+    const alertStop = () => {
+        handlePause();
+
+        Alert.alert(
+            "STOP EXERCISE",
+            "Are you sure you want to stop?",
+            [{
+                text: "Cancel",
+                style: "cancel",
+                onPress: handleStart,
+            },
+            {
+                text: "Yes",
+                onPress: handleStop,
+                style: "destructive",
+            }
+        ],
+            { cancelable: true }
+        )
     }
 
     return (
@@ -97,6 +126,7 @@ export default function ExerciseDetail({ route, navigation }) {
             <Text style={styles.sensorText}>Akcelerometer: ...</Text>
             <Text style={styles.sensorText}>Speed: {speed} m/s</Text>
             <Text style={styles.sensorText}>AVG speed: {avgSpeed} m/s</Text>
+            <Text style={styles.sensorText}>Max speed: {maxSpeed} m/s</Text>
             <StatusBar style="auto" />
         </View>
 
@@ -109,7 +139,7 @@ export default function ExerciseDetail({ route, navigation }) {
                 <Text style={styles.buttonText}>Pause</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleStop} style={[styles.button, status === 'idle' && styles.buttonActive]} /* TODO: onPress={handleStop} */ >
+            <TouchableOpacity onPress={alertStop} style={[styles.button, status === 'idle' && styles.buttonActive]} /* TODO: onPress={handleStop} */ >
                 <Text style={styles.buttonText}>Stop</Text>
             </TouchableOpacity>
         </View>
