@@ -1,5 +1,5 @@
-import React, {  useState, useRef } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import React, {  useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Accelerometer } from 'expo-sensors';
 import { Alert, Linking  } from 'react-native';
@@ -9,21 +9,62 @@ import * as Location from 'expo-location';
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
     const [status, setStatus] = useState('idle'); // idle, running, paused
-
     const [{x, y, z},setAccelerometer] = useState({x: 0, y:0, z:0})
-    const accelerometerSubscription = useRef(null);
-
     const [speed, setSpeed] = useState(0);
     const [avgSpeed, setAvgSpeed] = useState(0);
     const [maxSpeed, setMaxSpeed] = useState(0);
     const [location,setLocation] = useState({latitude:null, longitude:null, altitude:null})
+    const [duration, setDuration] = useState(0);
+    const [startTime, setStartTime] = useState(null);
+    const [distance, setDistance] = useState(0); 
 
+    const accelerometerSubscription = useRef(null);
     const totalSpeed = useRef(0);
     const readingCount = useRef(0);
     const locationSubscription = useRef(null);
+    const lastLocation = useRef(null); 
+    const intervalRef = useRef(null); 
+
+//#region functions
+useKeepAwake(status ==='running' ? 'exercise-session' : null);
+    useEffect(() => {
+    if (status === 'running') {
+        intervalRef.current = setInterval(() => {
+            setDuration(prev => prev + 1);
+        }, 1000);
+    } else {
+        clearInterval(intervalRef.current);
+    }
+    return () => clearInterval(intervalRef.current);
+}, [status]);
+
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Radius of the Earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c * 1000; // Convert to meters
+  return distance;
+};
     
-    useKeepAwake(status ==='running' ? 'exercise-session' : null);
-//#region Speed
+const formatDuration = (totalSeconds) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    } else {
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+}; 
+//#endregion
+
+//#region Speed and distace
     const handleStart = async  () =>{ 
         const granted = await requestAccelerometerPermission();
         const locationPermission = await requestLocationPermission();
@@ -32,7 +73,9 @@ export default function ExerciseDetail({ route, navigation }) {
             setStatus('idle');
             return;
         }
+
         setStatus('running');
+        setStartTime(new Date());
         startExercise();
     }
     const handlePause = () => {
@@ -74,13 +117,25 @@ export default function ExerciseDetail({ route, navigation }) {
         locationSubscription.current = await Location.watchPositionAsync({
             accuracy: Location.Accuracy.High,
             distanceInterval: 1, 
-        },
-        (newLocation) => {
-            const { latitude, longitude, altitude } = newLocation.coords;
+        }, (newLocation) => {
+            const { latitude, longitude, altitude, speed: locationSpeed } = newLocation.coords;
             setLocation({ latitude, longitude, altitude });
-            if (newLocation.coords.speed) {
-                setSpeed(newLocation.coords.speed.toFixed(2));
+            if (locationSpeed !== null && locationSpeed > 0) {
+                setSpeed(locationSpeed.toFixed(2));
             }
+            
+            if (lastLocation.current) {
+                const newDistance = calculateDistance(
+                    lastLocation.current.latitude,
+                    lastLocation.current.longitude,
+                    latitude,
+                    longitude
+                );
+                if (newDistance > 1) {
+                    setDistance(prevDistance => prevDistance + newDistance);
+                }
+            }
+            lastLocation.current = { latitude, longitude };
         });
     }
 
@@ -96,48 +151,60 @@ export default function ExerciseDetail({ route, navigation }) {
     }
 
     const stopExercise = async () => {
-        if (accelerometerSubscription.current) {
-            accelerometerSubscription.current.remove();
-            accelerometerSubscription.current = null;
-        }
-        if (locationSubscription.current) {
-            locationSubscription.current.remove();
-            locationSubscription.current = null;
-        }
+       pauseExercise();
     }
 //#endregion
 
 //#region Alert
-    const alertStop = () => {
-        handlePause();
-
+const alertStop = () => {
+    handlePause();
+    Alert.alert(
+        "STOP EXERCISE",
+        "Are you sure you want to stop?",
+        [{
+            text: "Cancel",
+            style: "cancel",
+            onPress: handleStart,
+        },
+        {
+            text: "Yes",
+            onPress: handleStop,
+            style: "destructive",
+        }
+    ],
+        { cancelable: true }
+    )
+}
+const requestAccelerometerPermission = async () => {
+const { status, canAskAgain } = await Accelerometer.getPermissionsAsync();
+if (status !== 'granted') {
+    const { status: newStatus } = await Accelerometer.requestPermissionsAsync();
+    if (newStatus !== 'granted') {
         Alert.alert(
-            "STOP EXERCISE",
-            "Are you sure you want to stop?",
-            [{
-                text: "Cancel",
-                style: "cancel",
-                onPress: handleStart,
-            },
-            {
-                text: "Yes",
-                onPress: handleStop,
-                style: "destructive",
-            }
-        ],
-            { cancelable: true }
-        )
+            "Motion Permission Required",
+            "Motion sensor permission is needed to track your activity. Please enable it in settings.",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Open Settings",
+                    onPress: () => Linking.openSettings(),
+                },
+            ]
+        );
+        return false;
     }
-    const requestAccelerometerPermission = async () => {
-    const { status, canAskAgain } = await Accelerometer.getPermissionsAsync();
+}
+return true;
+};
 
+const requestLocationPermission = async () => {
+     const { status, canAskAgain } = await Location.getForegroundPermissionsAsync();
     if (status !== 'granted') {
-        const { status: newStatus } = await Accelerometer.requestPermissionsAsync();
-
+        const { status: newStatus } = await Location.requestForegroundPermissionsAsync();
         if (newStatus !== 'granted') {
             Alert.alert(
-                "Motion Permission Required",
-                "Motion sensor permission is needed to track your activity. Please enable it in settings.",
+                "Location Permission Required",
+                "Location access is required for tracking. Please enable it in settings.",
                 [
                     { text: "Cancel", style: "cancel" },
                     {
@@ -149,36 +216,10 @@ export default function ExerciseDetail({ route, navigation }) {
             return false;
         }
     }
-
     return true;
-    };
-
-    const requestLocationPermission = async () => {
-         const { status, canAskAgain } = await Location.getForegroundPermissionsAsync();
-
-        if (status !== 'granted') {
-            const { status: newStatus } = await Location.requestForegroundPermissionsAsync();
-
-            if (newStatus !== 'granted') {
-                Alert.alert(
-                    "Location Permission Required",
-                    "Location access is required for tracking. Please enable it in settings.",
-                    [
-                        { text: "Cancel", style: "cancel" },
-                        {
-                            text: "Open Settings",
-                            onPress: () => Linking.openSettings(),
-                        },
-                    ]
-                );
-                return false;
-            }
-        }
-
-        return true;
-    };
+};
 //#endregion
-   
+ 
 return (
     <View style={styles.container}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -194,18 +235,12 @@ return (
             <Text style={styles.title}>{exercise.name}</Text>
             </View>
         </ImageBackground>
-        <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.infoSection}>
-            <Text style={styles.detail}>Duration: {exercise.duration} min</Text>
+            <Text style={styles.detail}>Duration:   {formatDuration(duration)}</Text>
             <Text style={styles.detail}>Calories: {exercise.caloriesBurned}</Text>
-            <Text style={styles.detail}>Distance: {exercise.distance} m</Text>
+            <Text style={styles.detail}>Distance:  {distance.toFixed(2)} m</Text>
         </View>
-        <View style={styles.speedContainer}>
-            <Text>GPS</Text>
-            <Text>Logitude {location.longitude ?? '---'}</Text>
-            <Text>Lagitude {location.latitude ?? '---'}</Text>
-            <Text>Altitude {location.altitude ?? '---'}</Text>
-        </View>
+
         <View style={styles.speedContainer}>
             <Text style={styles.speedTitle}>SPEED METRICS</Text>
             <View style={styles.speedRow}>
@@ -223,17 +258,16 @@ return (
                 </View>
             </View>
         </View>
-    </ScrollView>
         <View style={styles.buttonRow}>
-            <TouchableOpacity onPress={handleStart} style={[styles.button, status === 'running' && styles.buttonActive]} /* TODO: onPress={handleStart} */ >
+            <TouchableOpacity onPress={handleStart} style={[styles.button, status === 'running' && styles.buttonActive] } disabled={status === 'running'}/* TODO: onPress={handleStart} */ >
                 <Text style={styles.buttonText}>Start</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handlePause} style={[styles.button, status === 'paused' && styles.buttonActive]} /* TODO: onPress={handlePause} */ >
+            <TouchableOpacity onPress={handlePause} style={[styles.button, status === 'paused' && styles.buttonActive]}  disabled={status !== 'running'}/* TODO: onPress={handlePause} */ >
                 <Text style={styles.buttonText}>Pause</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={alertStop} style={[styles.button, status === 'idle' && styles.buttonActive]} /* TODO: onPress={handleStop} */ >
+            <TouchableOpacity onPress={alertStop} style={[styles.button, status === 'idle' && styles.buttonActive]} disabled={status === 'idle'}/* TODO: onPress={handleStop} */ >
                 <Text style={styles.buttonText}>Stop</Text>
             </TouchableOpacity>
         </View>
@@ -338,9 +372,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 18,
     },
-    scrollContainer: {
-        paddingBottom: 100,  
-    },
+    
     speedContainer: {
         backgroundColor: '#FF3B3F',
         borderRadius: 12,
