@@ -1,14 +1,24 @@
 import React, { useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Accelerometer } from 'expo-sensors';
+import { StatusBar } from 'expo-status-bar';
+
+
 
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
     const [status, setStatus] = useState('idle'); // idle, running, paused
+    const [{x, y, z},setAccelerometer] = useState({x: 0, y:0, z:0})
 
     const handleStart = () => setStatus('running');
     const handlePause = () => setStatus('paused');
     const handleStop = () => setStatus('idle');
+
+    const startExercise = async () => {
+        const subscription = Accelerometer.addListener(setAccelerometer);
+        return () => subscription.remove()
+    }
 
   return (
     <View style={styles.container}>
@@ -36,10 +46,14 @@ export default function ExerciseDetail({ route, navigation }) {
             <Text style={styles.sensorTitle}>Sensors (soon):</Text>
             <Text style={styles.sensorText}>GPS:</Text>
             <Text style={styles.sensorText}>Akcelerometer: ...</Text>
+            <Text style={styles.sensorText}>X: {x.toFixed(2)}</Text>
+            <Text style={styles.sensorText}>Y: {y.toFixed(2)}</Text>
+            <Text style={styles.sensorText}>Z: {z.toFixed(2)}</Text>
+            <StatusBar style="auto" />
         </View>
 
         <View style={styles.buttonRow}>
-            <TouchableOpacity style={[styles.button, status === 'running' && styles.buttonActive]} /* TODO: onPress={handleStart} */ >
+            <TouchableOpacity onPress={startExercise} style={[styles.button, status === 'running' && styles.buttonActive]} /* TODO: onPress={handleStart} */ >
                 <Text style={styles.buttonText}>Start</Text>
             </TouchableOpacity>
 
