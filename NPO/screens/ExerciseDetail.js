@@ -1,13 +1,15 @@
-import React, {  useEffect, useState, useRef } from 'react';
+import React, {  useContext, useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Accelerometer } from 'expo-sensors';
 import { Alert, Linking  } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
+import { MqttContext } from '../MqttContext';
 
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
+
     const [status, setStatus] = useState('idle'); // idle, running, paused
     const [{x, y, z},setAccelerometer] = useState({x: 0, y:0, z:0})
     const [speed, setSpeed] = useState(0);
@@ -24,6 +26,9 @@ export default function ExerciseDetail({ route, navigation }) {
     const locationSubscription = useRef(null);
     const lastLocation = useRef(null); 
     const intervalRef = useRef(null); 
+
+    const { client, isConnected } = useContext(MqttContext);
+
 
 //#region functions
 useKeepAwake(status ==='running' ? 'exercise-session' : null);
@@ -62,6 +67,17 @@ const formatDuration = (totalSeconds) => {
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     }
 }; 
+
+const sendExerciseData = () => {
+    if(isConnected && client){
+        //const message = JSON.stringify({ speed, duration, distance });
+        //client.publish('exercise/data', message);
+        console.log('MQTT client connected');
+    } else {
+        console.log('MQTT client not connected');
+    }
+};
+
 //#endregion
 
 //#region Speed and distace
@@ -259,6 +275,10 @@ return (
             </View>
         </View>
         <View style={styles.buttonRow}>
+            <TouchableOpacity onPress={sendExerciseData} style={[styles.button, status === 'running' && styles.buttonActive] } disabled={status === 'running'}/* TODO: onPress={handleStart} */ >
+                <Text style={styles.buttonText}>Connect</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity onPress={handleStart} style={[styles.button, status === 'running' && styles.buttonActive] } disabled={status === 'running'}/* TODO: onPress={handleStart} */ >
                 <Text style={styles.buttonText}>Start</Text>
             </TouchableOpacity>
