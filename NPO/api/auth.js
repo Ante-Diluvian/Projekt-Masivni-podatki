@@ -12,6 +12,7 @@ export const login = async (username, password) => {
   }
 };
 
+//Session check
 export const checkLoginStatus = async () => {
   try {
     const response = await API.get('/users/me');
@@ -21,3 +22,13 @@ export const checkLoginStatus = async () => {
     return null;
   }
 };
+
+export const register = async (username, password, email) => {
+  try {
+    const response = await api.post('/users/', { username, password, email });
+    return response.data;
+  } catch (error) {
+    console.error('Registration error:', error.response?.data || error.message);
+    throw error;
+  }
+}

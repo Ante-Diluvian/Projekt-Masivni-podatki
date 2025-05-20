@@ -1,13 +1,34 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { register } from '../api/auth';
 
 const RegisterScreen = ({ navigation }) => {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [imageLoaded, setImageLoaded] = useState(false);
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [imageLoaded, setImageLoaded] = useState(false);
+
+    const handleRegister = async () => {
+        if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+            Alert.alert('Error', 'Please fill in all fields');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            Alert.alert('Error', 'Passwords do not match');
+            return;
+        }
+
+        try {
+            const data = await register(username, password, email);
+            navigation.goBack();
+        } catch (error) {
+            console.error('Registration Error Details:', error);
+            Alert.alert('Registration failed', error.response?.data?.message || 'Unknown error');
+        }
+    }
 
     return (
         <>
@@ -59,7 +80,7 @@ const RegisterScreen = ({ navigation }) => {
                 placeholderTextColor="#666"
             />
 
-            <TouchableOpacity style={styles.button} onPress={() => {/* TODO: call register */}}>
+            <TouchableOpacity style={styles.button} onPress={{handleRegister}}>
                 <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
 
