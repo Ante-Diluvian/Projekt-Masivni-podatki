@@ -3,7 +3,7 @@ let client = null;
 
 export const initMqttClient = () => {
   if (!client) {
-    const client = mqtt.connect('ws://194.163.176.154:9001', {
+    client = mqtt.connect('ws://194.163.176.154:9001', {
       username: 'app_guest',
       password: 'fentanyl',
     });

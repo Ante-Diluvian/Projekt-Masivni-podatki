@@ -88,7 +88,7 @@ const formatDuration = (totalSeconds) => {
 
 const sendExerciseData = () => {
     const client = getMqttClient();
-    if(client && client.connected){
+    if(client){
         const username = user.username;
         const latitude = location.latitude;//daj ji v polje, shranuj jih raje v polje vsakih pas sekund
         const longitude = location.longitude;
@@ -97,8 +97,10 @@ const sendExerciseData = () => {
         const calorie = "300";
 
         const message = JSON.stringify({ username , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie });
-        client.publish('exercise/data', message);
+        client.publish("app/workout", message);
+        
         console.log('MQTT client connected');
+        console.log('Publishing message:', message);
     } else {
         console.log('MQTT client not connected');
     }
@@ -127,7 +129,7 @@ const sendExerciseData = () => {
     const handleStop = () => { 
         setStatus('idle');
         stopExercise();
-        sendExerciseData(client)
+        sendExerciseData()
     }
 
     const startExercise = async () => {
