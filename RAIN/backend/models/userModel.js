@@ -9,7 +9,8 @@ var userSchema = new Schema({
 	timestamp : {
 		type: Date,
 		default: Date.now
-	}
+	},
+	user_type : Number,
 });
 
 userSchema.pre('save', function(next){

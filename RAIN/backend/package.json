@@ -22,7 +22,8 @@
     "http-errors": "~1.6.3",
     "mongodb": "^6.15.0",
     "mongoose": "^6.9.0",
-    "morgan": "~1.9.1"
+    "morgan": "~1.9.1",
+    "rain": "file:"
   },
   "main": "app.js",
   "keywords": [],

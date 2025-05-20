@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MQTT WebSocket Test</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    input, button { padding: 0.5rem; margin: 0.5rem 0; width: 100%; }
+    #messages { background: #f0f0f0; padding: 1rem; height: 200px; overflow-y: scroll; }
+  </style>
+</head>
+<body>
+  <h1>MQTT WebSocket Test</h1>
+
+  <label>Broker host (npr. ws://localhost:9001):</label>
+  <input type="text" id="broker" value="ws://localhost:9001" />
+
+  <label>Topic:</label>
+  <input type="text" id="topic" value="test/topic" />
+
+  <label>Sporočilo za pošiljanje:</label>
+  <input type="text" id="message" value="Pozdrav iz HTML!" />
+
+  <button onclick="connect()">Poveži</button>
+  <button onclick="publish()">Pošlji sporočilo</button>
+
+  <h3>Prejeta sporočila:</h3>
+  <div id="messages"></div>
+
+  <script>
+    let client;
+
+    function connect() {
+      const broker = document.getElementById('broker').value;
+      const topic = document.getElementById('topic').value;
+
+      client = mqtt.connect(broker);
+
+      client.on('connect', function () {
+        appendMessage(`✅ Povezan na broker: ${broker}`);
+        client.subscribe(topic, function (err) {
+          if (!err) {
+            appendMessage(`📡 Naročen na temo: ${topic}`);
+          } else {
+            appendMessage(`❌ Napaka pri naročanju: ${err}`);
+          }
+        });
+      });
+
+      client.on('message', function (topic, message) {
+        appendMessage(`📥 ${topic}: ${message.toString()}`);
+      });
+
+      client.on('error', function (err) {
+        appendMessage(`❌ Napaka: ${err}`);
+      });
+    }
+
+    function publish() {
+      const topic = document.getElementById('topic').value;
+      const message = document.getElementById('message').value;
+      if (client && client.connected) {
+        client.publish(topic, message);
+        appendMessage(`📤 Poslano: ${message}`);
+      } else {
+        appendMessage('⚠️ Ni povezave.');
+      }
+    }
+
+    function appendMessage(msg) {
+      const messagesDiv = document.getElementById('messages');
+      messagesDiv.innerHTML += `<div>${msg}</div>`;
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+  </script>
+</body>
+</html>
