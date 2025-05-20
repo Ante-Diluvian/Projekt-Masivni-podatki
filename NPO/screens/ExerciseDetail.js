@@ -20,8 +20,10 @@ export default function ExerciseDetail({ route, navigation }) {
         setStatus('paused');
         pauseExercise();
     }
-    const handleStop = () => setStatus('idle');
-
+    const handleStop = () => { 
+        setStatus('idle');
+        stopExercise();
+    }
     const startExercise = async () => {
         if (accelerometerSubscription.current) return;
          
@@ -31,6 +33,13 @@ export default function ExerciseDetail({ route, navigation }) {
     }
     const pauseExercise = async () => {
        if (accelerometerSubscription.current) {
+            accelerometerSubscription.current.remove();
+            accelerometerSubscription.current = null;
+        }
+    }
+
+    const stopExercise = async () => {
+        if (accelerometerSubscription.current) {
             accelerometerSubscription.current.remove();
             accelerometerSubscription.current = null;
         }
@@ -77,7 +86,7 @@ export default function ExerciseDetail({ route, navigation }) {
                 <Text style={styles.buttonText}>Pause</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.button, status === 'idle' && styles.buttonActive]} /* TODO: onPress={handleStop} */ >
+            <TouchableOpacity onPress={handleStop} style={[styles.button, status === 'idle' && styles.buttonActive]} /* TODO: onPress={handleStop} */ >
                 <Text style={styles.buttonText}>Stop</Text>
             </TouchableOpacity>
         </View>

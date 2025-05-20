@@ -37,4 +37,4 @@ var workoutSchema = new Schema({
 
 });
 
-module.exports = mongoose.model('gps', gpsSchema);
+module.exports = mongoose.model('Workout', workoutSchema);
