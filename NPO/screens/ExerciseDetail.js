@@ -14,9 +14,10 @@ export default function ExerciseDetail({ route, navigation }) {
     const accelerometerSubscription = useRef(null);
 
     const [speed, setSpeed] = useState(0);
+    const [avgSpeed, setAvgSpeed] = useState(0);
 
-    const velocity = useRef({ x: 0, y: 0, z: 0 });
-    const lastTimestamp = useRef(null);
+    const totalSpeed = useRef(0);
+    const readingCount = useRef(0)
 
     const handleStart = () =>{ 
         setStatus('running');
@@ -42,8 +43,14 @@ export default function ExerciseDetail({ route, navigation }) {
     
         const netAccel = Math.abs(magnitude - 1); 
         const estimatedSpeed = netAccel * 3; 
-    
+        
         setSpeed(estimatedSpeed.toFixed(2)); 
+        
+        totalSpeed.current += estimatedSpeed;
+        readingCount.current += 1;
+        const newAvg = totalSpeed.current / readingCount.current;
+        
+        setAvgSpeed(newAvg.toFixed(2));
         setAccelerometer(accelData);
     });
     }
@@ -89,6 +96,7 @@ export default function ExerciseDetail({ route, navigation }) {
             <Text style={styles.sensorText}>GPS:</Text>
             <Text style={styles.sensorText}>Akcelerometer: ...</Text>
             <Text style={styles.sensorText}>Speed: {speed} m/s</Text>
+            <Text style={styles.sensorText}>AVG speed: {avgSpeed} m/s</Text>
             <StatusBar style="auto" />
         </View>
 
