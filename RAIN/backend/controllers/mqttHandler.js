@@ -24,9 +24,6 @@ client.on('message', (topic, messageBuffer) => {
       const { username, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie } = message;
       console.log('Received exercise data:', message);
 
-      // You can now save it to DB, forward to a REST route, or process as needed
-      // Example: saveExerciseToDB(message);
-
     } catch (err) {
       console.error('Failed to parse MQTT message:', err);
     }
