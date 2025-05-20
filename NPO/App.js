@@ -16,6 +16,7 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import MainScreen from './screens/MainScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import ExerciseDetail from './screens/ExerciseDetail';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -38,6 +39,7 @@ function AppStack({ onLogout }) {
       <Stack.Screen name="Profile">
         {(props) => <ProfileScreen {...props} onLogout={onLogout} />}
       </Stack.Screen>
+      <Stack.Screen name="ExerciseDetail" component={ExerciseDetail} />
     </Stack.Navigator>
   );
 }
@@ -70,7 +72,7 @@ export default function App() {
   
   return (
     <>
-    <StatusBar style="dark" />
+    <StatusBar style="light" />
     <NavigationContainer>
       {isAuthenticated ? (
         <AppStack onLogout={() => setIsAuthenticated(false)}/>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions, ImageBackground } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const mockWorkouts = [
   {
@@ -41,6 +42,8 @@ const spacing = 16;
 const cardWidth = (screenWidth - spacing * 3.6) / 2;
 
 export default function Exercises() {
+  const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Exercises</Text>
@@ -52,7 +55,7 @@ export default function Exercises() {
         columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: spacing }}
         contentContainerStyle={{ paddingBottom: spacing }}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ExerciseDetail', { exercise: item })} >
             <ImageBackground
               source={item.image}
               style={styles.image}
