@@ -23,6 +23,7 @@
     "mongodb": "^6.15.0",
     "mongoose": "^6.9.0",
     "morgan": "~1.9.1",
+    "mqtt": "^5.13.0",
     "rain": "file:"
   },
   "main": "app.js",
