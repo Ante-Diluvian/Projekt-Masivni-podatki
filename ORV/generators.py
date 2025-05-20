@@ -5,10 +5,10 @@ import random
 
 from tensorflow.keras.utils import Sequence
 
-from augmentacija import process_img, filter_with_gausso_core, linearize_img, rotate_img
+from augmentacija import process_img, filter_with_gausso_core, linearize_img, rotate_img, change_brightness, mirror_img, move_img
 
 class ImageDataGenerator(tf.keras.utils.Sequence):
-    def __init__(self, image_paths, labels, batch_size=32, image_size=(64, 64), shuffle=True, augment=False):
+    def __init__(self, image_paths, labels, batch_size=32, image_size=(128, 128), shuffle=True, augment=False):
         #Initialize the data generator
         self.image_paths = image_paths
         self.labels = labels
@@ -49,10 +49,19 @@ class ImageDataGenerator(tf.keras.utils.Sequence):
             self.image_paths = [self.image_paths[i] for i in indices]
             self.labels = [self.labels[i] for i in indices]
 
-    def load_image(self, path):
-        #Load and preprocess the image
-        pass
-    
     def augment_image(self, img):
         #Apply data augmentation to the image
-        pass
+        if random.random() < 0.3:
+            img = rotate_img(img, random.randint(-25, 25))
+        if random.random() < 0.3:
+            img = change_brightness(img, random.randint(-50, 50))
+        if random.random() < 0.2:
+            img = mirror_img(img)
+        if random.random() < 0.3:
+            img = move_img(img, random.randint(-15, 15), random.randint(-15, 15))
+        if random.random() < 0.2:
+            img = filter_with_gausso_core(img, sigma=1.5)
+        if random.random() < 0.2:
+            img = linearize_img(img)
+        
+        return img
