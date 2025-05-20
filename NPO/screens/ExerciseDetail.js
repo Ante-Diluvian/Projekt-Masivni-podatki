@@ -9,8 +9,14 @@ import { StatusBar } from 'expo-status-bar';
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
     const [status, setStatus] = useState('idle'); // idle, running, paused
+
     const [{x, y, z},setAccelerometer] = useState({x: 0, y:0, z:0})
     const accelerometerSubscription = useRef(null);
+
+    const [speed, setSpeed] = useState(0);
+
+    const velocity = useRef({ x: 0, y: 0, z: 0 });
+    const lastTimestamp = useRef(null);
 
     const handleStart = () =>{ 
         setStatus('running');
@@ -26,11 +32,22 @@ export default function ExerciseDetail({ route, navigation }) {
     }
     const startExercise = async () => {
         if (accelerometerSubscription.current) return;
-         
+        
+        Accelerometer.setUpdateInterval(100);
+
         accelerometerSubscription.current = Accelerometer.addListener(accelData => {
-            setAccelerometer(accelData);
-        });
+            const magnitude = Math.sqrt(
+            accelData.x ** 2 + accelData.y ** 2 + accelData.z ** 2
+        );
+    
+        const netAccel = Math.abs(magnitude - 1); 
+        const estimatedSpeed = netAccel * 3; 
+    
+        setSpeed(estimatedSpeed.toFixed(2)); 
+        setAccelerometer(accelData);
+    });
     }
+
     const pauseExercise = async () => {
        if (accelerometerSubscription.current) {
             accelerometerSubscription.current.remove();
@@ -45,7 +62,7 @@ export default function ExerciseDetail({ route, navigation }) {
         }
     }
 
-  return (
+    return (
     <View style={styles.container}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={20} color="#fff" />
@@ -71,9 +88,7 @@ export default function ExerciseDetail({ route, navigation }) {
             <Text style={styles.sensorTitle}>Sensors (soon):</Text>
             <Text style={styles.sensorText}>GPS:</Text>
             <Text style={styles.sensorText}>Akcelerometer: ...</Text>
-            <Text style={styles.sensorText}>X: {x.toFixed(2)}</Text>
-            <Text style={styles.sensorText}>Y: {y.toFixed(2)}</Text>
-            <Text style={styles.sensorText}>Z: {z.toFixed(2)}</Text>
+            <Text style={styles.sensorText}>Speed: {speed} m/s</Text>
             <StatusBar style="auto" />
         </View>
 
