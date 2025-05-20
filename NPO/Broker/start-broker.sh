@@ -45,8 +45,7 @@ if [ ! -f "$ACL_FILE" ]; then
   cat <<EOF > "$ACL_FILE"
 # ACL for user $USERNAME
 user $USERNAME
-topic write app/register
-topic write app/login
+topic write app/workout
 topic read  app/response/#
 EOF
 else
