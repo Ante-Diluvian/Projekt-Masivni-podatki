@@ -5,7 +5,8 @@ import { Accelerometer } from 'expo-sensors';
 import { Alert, Linking  } from 'react-native';
 import { useKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
-import { MqttContext } from '../MqttContext';
+import { getMqttClient } from '../MqttContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
@@ -19,6 +20,8 @@ export default function ExerciseDetail({ route, navigation }) {
     const [duration, setDuration] = useState(0);
     const [startTime, setStartTime] = useState(null);
     const [distance, setDistance] = useState(0); 
+    const [user, setUser] = useState({ username: '', email: '', password: '' });
+    
 
     const accelerometerSubscription = useRef(null);
     const totalSpeed = useRef(0);
@@ -27,12 +30,12 @@ export default function ExerciseDetail({ route, navigation }) {
     const lastLocation = useRef(null); 
     const intervalRef = useRef(null); 
 
-    const { client, isConnected } = useContext(MqttContext);
 
 
 //#region functions
 useKeepAwake(status ==='running' ? 'exercise-session' : null);
-    useEffect(() => {
+
+useEffect(() => {
     if (status === 'running') {
         intervalRef.current = setInterval(() => {
             setDuration(prev => prev + 1);
@@ -42,6 +45,21 @@ useKeepAwake(status ==='running' ? 'exercise-session' : null);
     }
     return () => clearInterval(intervalRef.current);
 }, [status]);
+
+useEffect(() => {
+    const fetchUser = async () => {
+        try {
+            const userData = await AsyncStorage.getItem('token');
+            if(userData) 
+                setUser(JSON.parse(userData));
+                console.log(userData);
+        } catch (error) {
+                console.error('Failed to load user data', error);
+            }
+        };
+        fetchUser();
+}, []);
+
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Radius of the Earth in km
@@ -69,9 +87,17 @@ const formatDuration = (totalSeconds) => {
 }; 
 
 const sendExerciseData = () => {
-    if(isConnected && client){
-        //const message = JSON.stringify({ speed, duration, distance });
-        //client.publish('exercise/data', message);
+    const client = getMqttClient();
+    if(client && client.connected){
+        const username = user.username;
+        const latitude = location.latitude;//daj ji v polje, shranuj jih raje v polje vsakih pas sekund
+        const longitude = location.longitude;
+        const altitude = location.altitude;
+        const endTime = Date.now();
+        const calorie = "300";
+
+        const message = JSON.stringify({ username , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie });
+        client.publish('exercise/data', message);
         console.log('MQTT client connected');
     } else {
         console.log('MQTT client not connected');
@@ -101,6 +127,7 @@ const sendExerciseData = () => {
     const handleStop = () => { 
         setStatus('idle');
         stopExercise();
+        sendExerciseData(client)
     }
 
     const startExercise = async () => {
@@ -275,10 +302,6 @@ return (
             </View>
         </View>
         <View style={styles.buttonRow}>
-            <TouchableOpacity onPress={sendExerciseData} style={[styles.button, status === 'running' && styles.buttonActive] } disabled={status === 'running'}/* TODO: onPress={handleStart} */ >
-                <Text style={styles.buttonText}>Connect</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity onPress={handleStart} style={[styles.button, status === 'running' && styles.buttonActive] } disabled={status === 'running'}/* TODO: onPress={handleStart} */ >
                 <Text style={styles.buttonText}>Start</Text>
             </TouchableOpacity>
