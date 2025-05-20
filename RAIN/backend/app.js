@@ -19,7 +19,7 @@ require('dotenv').config();
 
 //CORS
 var cors = require('cors');
-var allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://locahost:8001', 'exp://127.0.0.1:19000', 'http://localhost:19006'];
+var allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8081', 'http://192.168.68.107:3001', 'exp://127.0.0.1:19000', 'exp://192.168.68.107:8081' , 'http://localhost:19006'];
 app.use(cors({
   credentials: true,
   origin: function (origin, callback) {
@@ -52,7 +52,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: false, 
-    httpOnly: true
+    httpOnly: true,
+    sameSite: 'lax'
   }
 }));
 app.use(function (req, res, next) {

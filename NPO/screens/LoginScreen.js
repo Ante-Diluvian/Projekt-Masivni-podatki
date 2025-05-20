@@ -4,7 +4,7 @@ import { View, Text, TextInput, Button, TouchableOpacity, Image, ImageBackground
 import { StatusBar } from 'expo-status-bar';
 import { login } from '../api/auth';
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, onLogin }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
@@ -19,7 +19,7 @@ const LoginScreen = ({ navigation }) => {
 
       try {
         const data = await login(username, password);
-        navigation.navigate('Home');
+        onLogin();
       } catch (error) {
         console.error('Login Error Details:', error);
         Alert.alert('Login failed', error.response?.data?.message || 'Unknown error');

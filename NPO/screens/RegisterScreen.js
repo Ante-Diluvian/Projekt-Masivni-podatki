@@ -80,7 +80,7 @@ const RegisterScreen = ({ navigation }) => {
                 placeholderTextColor="#666"
             />
 
-            <TouchableOpacity style={styles.button} onPress={{handleRegister}}>
+            <TouchableOpacity style={styles.button} onPress={handleRegister}>
                 <Text style={styles.buttonText}>Register</Text>
             </TouchableOpacity>
 

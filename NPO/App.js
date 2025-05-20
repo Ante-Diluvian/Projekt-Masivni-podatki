@@ -20,71 +20,62 @@ import ProfileScreen from './screens/ProfileScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
-function LoginStack() {
+function AuthStack({ onLogin }) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: false, animation: 'fade' }}>
-      <Stack.Screen name="Home" component={MainScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Login">
+        {(props) => <LoginScreen {...props} onLogin={onLogin} />}
+      </Stack.Screen>
       <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="Profile" component={ProfileScreen} />
     </Stack.Navigator>
   );
 }
 
-const tabBarOptions = {
-  tabBarActiveTintColor: '#000000',
-  tabBarInactiveTintColor: 'gray',
-  tabBarStyle: {
-    backgroundColor: '#f8f8f8',
-    height: 60,
-    borderTopWidth: 0,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: -2 },
-    shadowRadius: 8,
-    paddingBottom: 5,
-    paddingTop: 5,
-  },
-  tabBarLabelStyle: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-};
+function AppStack({ onLogout }) {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false, gestureEnabled: false, animation: 'fade' }}>
+      <Stack.Screen name="Home" component={MainScreen} />
+      <Stack.Screen name="Profile">
+        {(props) => <ProfileScreen {...props} onLogout={onLogout} />}
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-    useEffect(() => {
-      const verifySession = async () => {
-        const user = await checkLoginStatus();
-        setIsAuthenticated(!!user);
-        setIsLoading(false);
-      };
-      verifySession();
+  async function getData() {
+    try {    
+      const data = await AsyncStorage.getItem('token');
+      console.log('Token:', data);
+      setIsAuthenticated(!!data);
+    }
+    catch (error) {
+      console.error('Error getting login data:', error);
+      setIsAuthenticated(false);
+    }
+    finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getData();
   }, []);
 
-  if (isLoading) 
+  if (isLoading)
     return null;
-
+  
   return (
     <>
     <StatusBar style="dark" />
     <NavigationContainer>
       {isAuthenticated ? (
-        <Tab.Navigator
-          screenOptions={{
-            headerShown: false,
-            tabBarShowLabel: false,
-            tabBarIcon: () => null, //Brez ikon
-            tabBarStyle: { display: 'none' },
-          }}
-        >
-          <Tab.Screen name="HomeTab" component={MainScreen} />
-        </Tab.Navigator>
+        <AppStack onLogout={() => setIsAuthenticated(false)}/>
       ) : (
-        <LoginStack />
+        <AuthStack onLogin={() => setIsAuthenticated(true)} />
       )}
     </NavigationContainer>
     </>
