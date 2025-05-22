@@ -12,6 +12,11 @@ echo "🔧 Starting Mosquitto broker with Docker Compose..."
 docker-compose up -d
 
 sleep 2
+echo "🔐 Fixing permissions... part 1"
+sudo chown root:root ./config/acl
+sudo chmod 0600 ./config/acl
+sudo chown root:root ./config/passwd
+sudo chmod 0600 ./config/passwd
 
 # 1. Ustvari passwd datoteko (samo 1 uporabnik)
 if [ ! -f "$PASSWD_FILE" ]; then
@@ -29,11 +34,7 @@ else
 fi
 
 # 1b. Popravi pravice znotraj kontejnerja
-echo "🔐 Fixing permissions..."
-sudo chown root:root ./config/acl
-sudo chmod 0600 ./config/acl
-sudo chown root:root ./config/passwd
-sudo chmod 0600 ./config/passwd
+echo "🔐 Fixing permissions... part 2"
 docker exec mosquitto chown root:root /mosquitto/config/passwd || true
 docker exec mosquitto chmod 0600 /mosquitto/config/passwd || true
 docker exec mosquitto chown root:root /mosquitto/config/acl || true

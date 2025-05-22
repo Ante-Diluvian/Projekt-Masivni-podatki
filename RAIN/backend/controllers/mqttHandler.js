@@ -6,13 +6,27 @@ const Accelerometer = require('../models/accelerometerModel')
 const path = require('path');
 const fs = require('fs');
 
-const logFile = parh.join(__dirname, '../logs/mqtt_status.log');
+const logDir = path.join(__dirname, '../logs');
+const logFile = path.join(logDir, 'mqtt_status.log');
 const activeUsers = new Set();
 
 const client = mqtt.connect('ws://194.163.176.154:9001', {
   username: 'app_guest',
   password: 'fentanyl'
 });
+
+function initializeLogFile() {
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+    console.log(`Created logs directory at ${logDir}`);
+  }
+
+  if (!fs.existsSync(logFile)) {
+    const initialText = `MQTT Status Log - started at ${new Date().toISOString()}\n\n`;
+    fs.writeFileSync(logFile, initialText);
+    console.log(`Created log file at ${logFile}`);
+  }
+}
 
 function logEvent(type, userId){
   const timestamp = new Date().toISOString();
@@ -24,6 +38,8 @@ function logEvent(type, userId){
   });
   console.log(line.trim());
 }
+
+initializeLogFile();
 
 client.on('connect', () => {
   console.log('✅ Connected to MQTT broker');
