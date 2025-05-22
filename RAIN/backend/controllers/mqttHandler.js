@@ -59,12 +59,12 @@ client.on('message', (topic, messageBuffer) => {
       const { exercise, user1, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie } = message;
       console.log('Received exercise data:', message);
 
-      const gps = new Gps({latitude: [latitude], longitude: [longitude], altitude: [altitude]});
+      const gps = new Gps({latitude: [latitude].flat(), longitude: [longitude].flat(), altitude: [altitude].flat()});
       const savedGps = gps.save();
 
       const accelerometer = new Accelerometer({ avgSpeed, maxSpeed });
       const savedAccelerometer = accelerometer.save();
-
+      //Dodaj da se računajo kalorije user bos mogel dat se KG
 
       const workoutData = {
         name: exercise || "Workout", 
