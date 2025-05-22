@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkLoginStatus } from './api/auth';
 
 //mqtt
-import { initMqttClient  } from './MqttContext';
+import { initMqttClient, getMqttClient  } from './MqttContext';
 
 // Navigation
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -20,6 +20,7 @@ import RegisterScreen from './screens/RegisterScreen';
 import MainScreen from './screens/MainScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import ExerciseDetail from './screens/ExerciseDetail';
+import { AppState } from 'react-native';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -51,11 +52,28 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  AppState.addEventListener('change', (event) => {
+    if (event === 'background' || event === 'inactive') {
+      const client = getMqttClient();
+      const data = AsyncStorage.getItem('token');
+      if(!client || !data) return;
+      const userId = data ? JSON.parse(data)._id : null;
+      client.publish("status/offline", userId, 0, false);
+      console.log('App is in the background or inactive');
+      console.log('User ID:', userId);
+    } else if (event === 'active') {
+      console.log('App is active');
+    }
+  });
+
   async function getData() {
     try {    
       const data = await AsyncStorage.getItem('token');
       console.log('Token:', data);
       setIsAuthenticated(!!data);
+      if (data){
+        initMqttClient(data ? JSON.parse(data)._id : null);
+      }
     }
     catch (error) {
       console.error('Error getting login data:', error);
@@ -68,7 +86,6 @@ export default function App() {
 
   useEffect(() => {
     getData();
-    initMqttClient();
   }, []);
 
   if (isLoading)
