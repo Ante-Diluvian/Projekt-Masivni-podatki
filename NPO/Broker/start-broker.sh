@@ -46,7 +46,13 @@ if [ ! -f "$ACL_FILE" ]; then
 # ACL for user $USERNAME
 user $USERNAME
 topic write app/workout
-topic read  app/response/#
+topic read app/workout
+topic write status/online
+topic read status/online
+topic write status/offline
+topic read status/offline
+topic write app/response/#
+topic read app/response/#
 EOF
 else
   echo "✅ ACL file already exists."
