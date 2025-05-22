@@ -8,7 +8,7 @@ from tensorflow.keras.utils import Sequence
 from augmentacija import process_img, filter_with_gausso_core, linearize_img, rotate_img, change_brightness, mirror_img, move_img
 
 class ImageDataGenerator(tf.keras.utils.Sequence):
-    def __init__(self, image_paths, labels, batch_size=32, image_size=(128, 128), shuffle=True, augment=False):
+    def __init__(self, image_paths, labels, batch_size=32, image_size=(112, 112), shuffle=True, augment=False):
         #Initialize the data generator
         self.image_paths = image_paths
         self.labels = labels
@@ -29,7 +29,7 @@ class ImageDataGenerator(tf.keras.utils.Sequence):
         
         images = []
         for path in batch_x:
-            img = cv.imread(path)
+            img = cv.cvtColor(cv.imread(path), cv.COLOR_BGR2RGB)
             img = cv.resize(img, self.image_size)
             img = img.astype(np.float32) / 255.0
 
