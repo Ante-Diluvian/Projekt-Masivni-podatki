@@ -89,14 +89,14 @@ const formatDuration = (totalSeconds) => {
 const sendExerciseData = () => {
     const client = getMqttClient();
     if(client){
-        const username = user.username;
+        const user1 = user._id;
         const latitude = location.latitude;//daj ji v polje, shranuj jih raje v polje vsakih pas sekund
         const longitude = location.longitude;
         const altitude = location.altitude; // POPRAVI DISTANCE ko ga jerknes telefon gre za 10 m razdlja
         const endTime = Date.now();
         const calorie = "300";
 
-        const message = JSON.stringify({ username , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie });
+        const message = JSON.stringify({ exercise, user1 , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie });
         client.publish("app/workout", message);
 
         console.log('MQTT client connected');
