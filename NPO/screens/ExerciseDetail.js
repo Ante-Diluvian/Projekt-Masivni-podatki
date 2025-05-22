@@ -10,22 +10,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
+    const [user, setUser] = useState({ username: '', email: '', password: '' });
+    const [status, setStatus] = useState('idle');
 
-    const [status, setStatus] = useState('idle'); // idle, running, paused
     const [{x, y, z},setAccelerometer] = useState({x: 0, y:0, z:0})
     const [speed, setSpeed] = useState(0);
     const [avgSpeed, setAvgSpeed] = useState(0);
     const [maxSpeed, setMaxSpeed] = useState(0);
-    const [location,setLocation] = useState([{latitude:null, longitude:null, altitude:null}])
+   
     const [duration, setDuration] = useState(0);
     const [startTime, setStartTime] = useState(null);
-    const [distance, setDistance] = useState(0); 
-    const [user, setUser] = useState({ username: '', email: '', password: '' });
+    
     const [latitudeArray, setLatitudeArray] = useState([]);
     const [longitudeArray, setLongitudeArray] = useState([]);
     const [altitudeArray, setAltitudeArray] = useState([]);
-
-        
+    const [location,setLocation] = useState([{latitude:null, longitude:null, altitude:null}]);
+    const [distance, setDistance] = useState(0); 
 
     const accelerometerSubscription = useRef(null);
     const totalSpeed = useRef(0);
@@ -66,15 +66,12 @@ useEffect(() => {
 
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371; // Radius of the Earth in km
+  const R = 6371e3; 
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const distance = R * c * 1000; // Convert to meters
+  const distance = R * c; 
   return distance;
 };
 
@@ -121,10 +118,11 @@ const stopLocationLogging = () => {
         locationLogInterval.current = null;
     }
 };
+
 const calculateSpeed = () => {
     if (accelerometerSubscription.current) return;
 
-    Accelerometer.setUpdateInterval(100);
+    Accelerometer.setUpdateInterval(500);
 
     accelerometerSubscription.current = Accelerometer.addListener(accelData => {
         const magnitude = Math.sqrt(accelData.x ** 2 + accelData.y ** 2 + accelData.z ** 2);
@@ -165,7 +163,7 @@ const sendExerciseData = () => {
         const user1 = user._id;
         const latitude = latitudeArray;
         const longitude = longitudeArray;
-        const altitude = altitudeArray; // POPRAVI DISTANCE ko ga jerknes telefon gre za 10 m razdlja
+        const altitude = altitudeArray; 
         const endTime = Date.now();
         const calorie = "300";
 
