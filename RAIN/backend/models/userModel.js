@@ -14,7 +14,11 @@ var userSchema = new Schema({
 	weight: Number,
 	height: Number,
 	gender: { type: String, enum: ['male', 'female', 'other'] },
-	user_type : Number
+	user_type : Number,
+	userEmbedding: {
+		type: [Number],
+		default: []
+	}
 });
 
 userSchema.pre('save', function(next){

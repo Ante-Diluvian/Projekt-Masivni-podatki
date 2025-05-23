@@ -173,5 +173,14 @@ module.exports = {
                 return res.status(401).json({message: 'Unauthorized'});   
             return res.json(user);
         });
+    },
+
+    getUserById: async function (id) {
+        try {
+            return await User.findById(id);
+        } catch (err) {
+            console.error("Error fetching user by ID:", err);
+            return null;
+        }
     }
 };

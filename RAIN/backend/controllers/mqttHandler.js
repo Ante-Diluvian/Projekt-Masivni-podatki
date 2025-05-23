@@ -39,6 +39,20 @@ function logEvent(type, userId){
   console.log(line.trim());
 }
 
+function calculateCalories({ weight, durationMins, avgSpeed }) {
+    let met = 6; //Default MET
+
+    if (avgSpeed >= 8) 
+        met = 8;
+    else if (avgSpeed >= 10) 
+        met = 10;
+
+    const durationHours = durationMins / 60;
+    const calories = met * weight * durationHours;    //met * weight * workoutDuration
+
+    return Math.round(calories);
+}
+
 initializeLogFile();
 
 client.on('connect', () => {
@@ -64,7 +78,18 @@ client.on('message', (topic, messageBuffer) => {
 
       const accelerometer = new Accelerometer({ avgSpeed, maxSpeed });
       const savedAccelerometer = accelerometer.save();
-      //Dodaj da se računajo kalorije user bos mogel dat se KG
+
+      //Check if user exists or weight is missing
+      if (!user1 || !user1.weight) {
+        console.error('User not found or weight missing');
+        return;
+      }
+
+      const caloriesBurned = calculateCalories({
+        weight: user1.weight,
+        durationMins: duration,
+        avgSpeed: avgSpeed
+      });
 
       const workoutData = {
         name: exercise || "Workout", 
@@ -72,7 +97,7 @@ client.on('message', (topic, messageBuffer) => {
         startTimestamp: new Date(startTime),
         endTimestamp: new Date(endTime),
         duration: duration,
-        caloriesBurned: calorie,
+        caloriesBurned: caloriesBurned,
         distance: distance,
         gps: gps._id,
         accelerometer: accelerometer._id,
