@@ -39,18 +39,32 @@ function logEvent(type, userId){
   console.log(line.trim());
 }
 
-function calculateCalories({ weight, durationMins, avgSpeed }) {
-    let met = 6; //Default MET
+function calculateCalories({ weight, durationMins, avgSpeed, metValue }) {
+  let met;
 
-    if (avgSpeed >= 8) 
-        met = 8;
-    else if (avgSpeed >= 10) 
-        met = 10;
+  if (typeof metValue === 'number' && metValue > 0) {
+    //If metValue is valid
+    met = metValue;
 
-    const durationHours = durationMins / 60;
-    const calories = met * weight * durationHours;    //met * weight * workoutDuration
+    //Fast speed = burn more calories
+    if (avgSpeed >= 10)
+      met *= 1.2;
+    else if (avgSpeed >= 8) 
+      met *= 1.1;
+  } else {
+    //If theres no metValue
+    if (avgSpeed >= 10)
+      met = 10;
+    else if (avgSpeed >= 8)
+      met = 8;
+    else
+      met = 6; //Default (Like walking)
+  }
 
-    return Math.round(calories);
+  const durationHours = durationMins / 60;
+  const calories = met * weight * durationHours;
+
+  return Math.round(calories);
 }
 
 initializeLogFile();
@@ -70,7 +84,7 @@ client.on('message', (topic, messageBuffer) => {
   if (topic === "app/workout") {
     try {
       const message = JSON.parse(messageBuffer.toString());
-      const { exercise, user1, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie } = message;
+      const { exercise, user1, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue } = message;
       console.log('Received exercise data:', message);
 
       const gps = new Gps({latitude: [latitude].flat(), longitude: [longitude].flat(), altitude: [altitude].flat()});
@@ -88,7 +102,8 @@ client.on('message', (topic, messageBuffer) => {
       const caloriesBurned = calculateCalories({
         weight: user1.weight,
         durationMins: duration,
-        avgSpeed: avgSpeed
+        avgSpeed: avgSpeed,
+        metValue: metValue
       });
 
       const workoutData = {
