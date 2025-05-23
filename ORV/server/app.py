@@ -40,7 +40,7 @@ def preprocess_image(img_path, target_size=(112, 112)):
 def cosine_similarity(a, b):
     return np.dot(a, b.T) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-# Regiser route
+# Register route
 @app.route("/register", methods=["POST"])
 def register():
     username = request.form.get("username")
@@ -53,17 +53,24 @@ def register():
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     img_file.save(img_path)
 
-    img = preprocess_image(img_path)
-    embedding = embedding_model.predict(img).flatten().tolist()
+    try:
+        img = preprocess_image(img_path)
+        embedding = embedding_model.predict(img).flatten().tolist()
 
-    users_collection.update_one(
-        {"username": username},
-        {"$set": {"userEmbedding": embedding}},
-        upsert=True
-    )
+        users_collection.update_one(
+            {"username": username},
+            {"$set": {"userEmbedding": embedding}},
+            upsert=True
+        )
 
-    return jsonify({"status": "registered"}), 200
+        return jsonify({"status": "registered"}), 200
 
+    finally:
+        # Poizkusi pobrisati začasno sliko
+        if os.path.exists(img_path):
+            os.remove(img_path)
+
+# Login route
 @app.route("/login", methods=["POST"])
 def login():
     username = request.form.get("username")
@@ -80,12 +87,18 @@ def login():
     img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     img_file.save(img_path)
 
-    img = preprocess_image(img_path)
-    new_embedding = embedding_model.predict(img).flatten()
+    try:
+        img = preprocess_image(img_path)
+        new_embedding = embedding_model.predict(img).flatten()
 
-    similarity = cosine_similarity(np.array(user["userEmbedding"]), new_embedding)
+        similarity = cosine_similarity(np.array(user["userEmbedding"]), new_embedding)
+        return jsonify({"success": similarity > 0.7, "similarity": float(similarity)}), 200
 
-    return jsonify({"success": similarity > 0.7, "similarity": float(similarity)}), 200
+    finally:
+        # Poizkusi pobrisati začasno sliko
+        if os.path.exists(img_path):
+            os.remove(img_path)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
