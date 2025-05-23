@@ -1,41 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StyleSheet, Dimensions, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
-const mockWorkouts = [
-  {
-    _id: '1',
-    name: 'Jutranji tek',
-    duration: 30,
-    caloriesBurned: 250,
-    distance: 5000,
-    image: require('../assets/images/register-background.jpg'),
-  },
-  {
-    _id: '2',
-    name: 'Kolesarjenje',
-    duration: 45,
-    caloriesBurned: 400,
-    distance: 15000,
-    image: require('../assets/images/register-background.jpg'),
-  },
-  {
-    _id: '3',
-    name: 'HIIT trening',
-    duration: 20,
-    caloriesBurned: 300,
-    distance: 0,
-    image: require('../assets/images/register-background.jpg'),
-  },
-  {
-    _id: '4',
-    name: 'Jokanje pred kolokviji',
-    duration: 120,
-    caloriesBurned: 3000,
-    distance: 0,
-    image: require('../assets/images/register-background.jpg'),
-  },
-];
+import { getExercises } from '../api/exercises';
+import { url } from '../api/api'
 
 const screenWidth = Dimensions.get('window').width;
 const spacing = 16;
@@ -43,24 +10,45 @@ const cardWidth = (screenWidth - spacing * 3.6) / 2;
 
 export default function Exercises() {
   const navigation = useNavigation();
+  const [exercises, setExercises] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        const data = await getExercises();
+        setExercises(data);
+      } catch (err) {
+        console.error('Napaka pri nalaganju vaj:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExercises();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loader}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Exercises</Text>
 
       <FlatList
-        data={mockWorkouts}
+        data={exercises}
         keyExtractor={(item) => item._id}
         numColumns={2}
         columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: spacing }}
         contentContainerStyle={{ paddingBottom: spacing }}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ExerciseDetail', { exercise: item })} >
-            <ImageBackground
-              source={item.image}
-              style={styles.image}
-              imageStyle={styles.imageStyle}
-            >
+            <ImageBackground source={ item.imagePath ? { uri: `${url}/${item.imagePath}` } : require('../assets/images/default-exercise.jpg')} style={styles.image} imageStyle={styles.imageStyle}>
               <View style={styles.overlay}>
                 <Text style={styles.text}>{item.name}</Text>
               </View>
@@ -76,6 +64,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: 20,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
   },
   header: {
     fontSize: 24,
