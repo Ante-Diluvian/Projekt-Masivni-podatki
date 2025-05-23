@@ -63,10 +63,9 @@ def register():
             upsert=True
         )
 
-        return jsonify({"status": "registered"}), 200
+        return jsonify({"status": "success"}), 200
 
     finally:
-        # Poizkusi pobrisati začasno sliko
         if os.path.exists(img_path):
             os.remove(img_path)
 
@@ -95,7 +94,6 @@ def login():
         return jsonify({"success": similarity > 0.7, "similarity": float(similarity)}), 200
 
     finally:
-        # Poizkusi pobrisati začasno sliko
         if os.path.exists(img_path):
             os.remove(img_path)
 
