@@ -19,8 +19,14 @@ echo "🔧 Starting Mosquitto broker with Docker Compose..."
 docker-compose up -d
 
 sleep 2
+# 1a. Fix permissions on the passwd file (again)
+echo "🔐 Fixing permissions... part 2"
+docker exec mosquitto chown root:root /mosquitto/config/passwd || true
+docker exec mosquitto chmod 0600 /mosquitto/config/passwd || true
+docker exec mosquitto chown root:root /mosquitto/config/acl || true
+docker exec mosquitto chmod 0600 /mosquitto/config/acl || true
 
-# 1. Create the password file
+# 1c. Create the password file
 if [ ! -f "$PASSWD_FILE" ]; then
   echo "🆕 Creating password file and adding user '$USERNAME'..."
   docker run --rm -v "$(pwd)/config:/mosquitto/config" eclipse-mosquitto \
@@ -35,12 +41,7 @@ else
   fi
 fi
 
-# 1b. Fix permissions on the passwd file (again)
-echo "🔐 Fixing permissions... part 2"
-docker exec mosquitto chown root:root /mosquitto/config/passwd || true
-docker exec mosquitto chmod 0600 /mosquitto/config/passwd || true
-docker exec mosquitto chown root:root /mosquitto/config/acl || true
-docker exec mosquitto chmod 0600 /mosquitto/config/acl || true
+
 
 # 2. Create the ACL file
 if [ ! -f "$ACL_FILE" ]; then
