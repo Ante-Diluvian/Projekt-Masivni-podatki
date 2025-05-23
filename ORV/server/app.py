@@ -63,3 +63,29 @@ def register():
     )
 
     return jsonify({"status": "registered"}), 200
+
+@app.route("/login", methods=["POST"])
+def login():
+    username = request.form.get("username")
+    img_file = request.files.get("image")
+
+    if not username or not img_file:
+        return jsonify({"error": "Missing username or image"}), 400
+
+    user = users_collection.find_one({"username": username})
+    if not user or "userEmbedding" not in user:
+        return jsonify({"success": False, "error": "User not found"}), 404
+
+    filename = secure_filename(img_file.filename)
+    img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    img_file.save(img_path)
+
+    img = preprocess_image(img_path)
+    new_embedding = embedding_model.predict(img).flatten()
+
+    similarity = cosine_similarity(np.array(user["userEmbedding"]), new_embedding)
+
+    return jsonify({"success": similarity > 0.7, "similarity": float(similarity)}), 200
+
+if __name__ == "__main__":
+    app.run(debug=True)
