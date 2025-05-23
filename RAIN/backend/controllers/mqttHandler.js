@@ -39,6 +39,34 @@ function logEvent(type, userId){
   console.log(line.trim());
 }
 
+function calculateCalories({ weight, durationMins, avgSpeed, metValue }) {
+  let met;
+
+  if (typeof metValue === 'number' && metValue > 0) {
+    //If metValue is valid
+    met = metValue;
+
+    //Fast speed = burn more calories
+    if (avgSpeed >= 10)
+      met *= 1.2;
+    else if (avgSpeed >= 8) 
+      met *= 1.1;
+  } else {
+    //If theres no metValue
+    if (avgSpeed >= 10)
+      met = 10;
+    else if (avgSpeed >= 8)
+      met = 8;
+    else
+      met = 6; //Default (Like walking)
+  }
+
+  const durationHours = durationMins / 60;
+  const calories = met * weight * durationHours;
+
+  return Math.round(calories);
+}
+
 initializeLogFile();
 
 client.on('connect', () => {
@@ -56,7 +84,7 @@ client.on('message', (topic, messageBuffer) => {
   if (topic === "app/workout") {
     try {
       const message = JSON.parse(messageBuffer.toString());
-      const { exercise, user1, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie } = message;
+      const { exercise, user1, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue } = message;
       console.log('Received exercise data:', message);
 
       const gps = new Gps({latitude: [latitude].flat(), longitude: [longitude].flat(), altitude: [altitude].flat()});
@@ -64,7 +92,19 @@ client.on('message', (topic, messageBuffer) => {
 
       const accelerometer = new Accelerometer({ avgSpeed, maxSpeed });
       const savedAccelerometer = accelerometer.save();
-      //Dodaj da se računajo kalorije user bos mogel dat se KG
+
+      //Check if user exists or weight is missing
+      if (!user1 || !user1.weight) {
+        console.error('User not found or weight missing');
+        return;
+      }
+
+      const caloriesBurned = calculateCalories({
+        weight: user1.weight,
+        durationMins: duration,
+        avgSpeed: avgSpeed,
+        metValue: metValue
+      });
 
       const workoutData = {
         name: exercise || "Workout", 
@@ -72,7 +112,7 @@ client.on('message', (topic, messageBuffer) => {
         startTimestamp: new Date(startTime),
         endTimestamp: new Date(endTime),
         duration: duration,
-        caloriesBurned: calorie,
+        caloriesBurned: caloriesBurned,
         distance: distance,
         gps: gps._id,
         accelerometer: accelerometer._id,

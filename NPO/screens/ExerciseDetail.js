@@ -7,6 +7,7 @@ import { useKeepAwake } from 'expo-keep-awake';
 import * as Location from 'expo-location';
 import { getMqttClient } from '../MqttContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { url } from '../api/api'
 
 export default function ExerciseDetail({ route, navigation }) {
     const { exercise } = route.params;
@@ -165,9 +166,9 @@ const sendExerciseData = () => {
         const longitude = longitudeArray;
         const altitude = altitudeArray; 
         const endTime = Date.now();
-        const calorie = "300";
+        const metValue = exercise.metValue;
 
-        const message = JSON.stringify({ exercise, user1 , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, calorie });
+        const message = JSON.stringify({ exercise, user1 , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue });
         client.publish("app/workout", message);
 
         console.log('MQTT client connected');
@@ -295,8 +296,7 @@ return (
             <Ionicons name="arrow-back" size={20} color="#fff" />
         </TouchableOpacity>
 
-        <ImageBackground
-            source={exercise.image}
+        <ImageBackground source={ exercise.imagePath ? { uri: `${url}/${exercise.imagePath}` }: require('../assets/images/default-exercise.jpg')}
             style={styles.image}
             imageStyle={styles.imageStyle}
         >

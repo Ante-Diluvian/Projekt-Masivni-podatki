@@ -7,7 +7,7 @@ module.exports = {
         WorkoutModel.find(function (err, workout) {
             if (err) {
                 return res.status(500).json({
-                    message: 'Error when getting accelerometer.',
+                    message: 'Error when getting workout.',
                     error: err
                 });
             }
@@ -128,7 +128,7 @@ function saveWorkout(data, callback) {
         if (err) {
             console.error("Error saving workout:", err);
         } else {
-            console.log("✅ Workout saved successfully");
+            console.log("Workout saved successfully");
         }
         if (callback) callback(err, savedWorkout);
     });
