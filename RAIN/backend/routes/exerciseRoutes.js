@@ -1,12 +1,18 @@
 var express = require('express');
+
+var multer = require('multer')
+var upload = multer({dest: 'public/exerciseImages/'});
+
 var router = express.Router();
 var exerciseController = require('../controllers/exerciseController.js');
 
 //GET Get all exercises
 router.get('/', exerciseController.list);
 
+router.get('/create', exerciseController.showCreate);
+
 //POST Create new exercise
-router.post('/', exerciseController.create);
+router.post('/', upload.single('image'), exerciseController.create);
 
 //PUT Update exercise by id
 router.put('/:id', exerciseController.update);

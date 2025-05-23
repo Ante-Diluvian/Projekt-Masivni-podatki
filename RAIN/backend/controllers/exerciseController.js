@@ -19,11 +19,15 @@ module.exports = {
         });
     },
 
+    showCreate: function(req, res){
+        res.render('exercises/addExercise');
+    },
+
     create: function (req, res) {
         var exercise = new ExerciseModel({
             name: req.body.name,
             metValue: req.body.metValue,
-            imagePath: req.body.imagePath,
+            imagePath: "/exerciseImages/" + req.file.filename,
             category: req.body.category,
         });
 

@@ -52,19 +52,36 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  AppState.addEventListener('change', (event) => {
-    if (event === 'background' || event === 'inactive') {
-      const client = getMqttClient();
-      const data = AsyncStorage.getItem('token');
-      if(!client || !data) return;
-      const userId = data ? JSON.parse(data)._id : null;
-      client.publish("status/offline", userId, 0, false);
-      console.log('App is in the background or inactive');
-      console.log('User ID:', userId);
-    } else if (event === 'active') {
-      console.log('App is active');
-    }
-  });
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (event) => {
+      const handleAppStateChange = async () => {
+        if (event === 'background' || event === 'inactive') {
+          const client = getMqttClient();
+          if (!client) return;
+
+          try {
+            const data = await AsyncStorage.getItem('token');
+            if (!data) return;
+
+            const userId = JSON.parse(data)._id;
+            client.publish("status/offline", userId, 0, false);
+            console.log('App is in the background or inactive');
+            console.log('User ID:', userId);
+          } catch (error) {
+            console.error('Error handling app state change:', error);
+          }
+        } else if (event === 'active') {
+          console.log('App is active');
+        }
+      };
+
+      handleAppStateChange();
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   async function getData() {
     try {    

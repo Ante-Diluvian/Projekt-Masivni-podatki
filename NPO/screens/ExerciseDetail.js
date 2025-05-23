@@ -306,7 +306,6 @@ return (
         </ImageBackground>
         <View style={styles.infoSection}>
             <Text style={styles.detail}>Duration:   {formatDuration(duration)}</Text>
-            <Text style={styles.detail}>Calories: {exercise.caloriesBurned}</Text>
             <Text style={styles.detail}>Distance:  {distance.toFixed(2)} m</Text>
         </View>
 
