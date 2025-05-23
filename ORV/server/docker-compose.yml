@@ -1,27 +1,14 @@
 version: "3.8"
 
 services:
-  mongodb:
-    image: mongo:6.0
-    container_name: face2fa_mongo
-    restart: unless-stopped
-    volumes:
-      - mongo_data:/data/db
-    ports:
-      - "27017:27017"
-
   face2fa:
     build: .
     container_name: face2fa_app
     restart: unless-stopped
     ports:
       - "5000:5000"
+    env_file:
+      - .env
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
-      - MONGO_URI=mongodb://mongodb:27017
-    depends_on:
-      - mongodb
-
-volumes:
-  mongo_data:
