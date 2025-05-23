@@ -39,3 +39,27 @@ def preprocess_image(img_path, target_size=(112, 112)):
 # Cosine similarity
 def cosine_similarity(a, b):
     return np.dot(a, b.T) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+# Regiser route
+@app.route("/register", methods=["POST"])
+def register():
+    username = request.form.get("username")
+    img_file = request.files.get("image")
+
+    if not username or not img_file:
+        return jsonify({"error": "Missing username or image"}), 400
+
+    filename = secure_filename(img_file.filename)
+    img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    img_file.save(img_path)
+
+    img = preprocess_image(img_path)
+    embedding = embedding_model.predict(img).flatten().tolist()
+
+    users_collection.update_one(
+        {"username": username},
+        {"$set": {"userEmbedding": embedding}},
+        upsert=True
+    )
+
+    return jsonify({"status": "registered"}), 200
