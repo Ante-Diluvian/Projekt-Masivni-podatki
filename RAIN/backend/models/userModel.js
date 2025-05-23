@@ -10,7 +10,11 @@ var userSchema = new Schema({
 		type: Date,
 		default: Date.now
 	},
-	user_type : Number,
+	age: Number,
+	weight: Number,
+	height: Number,
+	gender: { type: String, enum: ['male', 'female', 'other'] },
+	user_type : Number
 });
 
 userSchema.pre('save', function(next){
