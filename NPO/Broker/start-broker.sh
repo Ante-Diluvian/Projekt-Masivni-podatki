@@ -54,6 +54,8 @@ topic write status/offline
 topic read status/offline
 topic write app/response/#
 topic read app/response/#
+topic write app/twofactor/#
+topic read app/twofactor/#
 EOF
 else
   echo "✅ ACL file already exists."
