@@ -1,5 +1,5 @@
 # 3.10 for TensorFlow
-FROM python:3.10-slim	
+FROM python:3.12-slim
 
 # Python settings
 ENV PYTHONDONTWRITEBYTECODE=1
