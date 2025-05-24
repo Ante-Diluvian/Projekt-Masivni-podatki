@@ -117,7 +117,7 @@ client.on('message', (topic, messageBuffer) => {
 function sendMsg(userId) {
   const verifyTopic = `app/twofactor/verify/${userId}`;
   const sendTopic = `app/twofactor/send/${userId}`;
-
+  client.unsubscribe(verifyTopic);
   client.subscribe(verifyTopic, (err) => {
     if (err) {
       console.error("Subscribe error:", err);
@@ -141,7 +141,8 @@ function sendMsg(userId) {
   };
   
   // Register the handler
-  client.on('message', messageHandler);
+
+  client.once('message', messageHandler);
   
   // Return a way to unsubscribe later if needed
   return {
