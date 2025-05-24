@@ -3,6 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkLoginStatus } from './api/auth';
+import { Alert } from 'react-native';
+
 
 //mqtt
 import { initMqttClient, getMqttClient  } from './MqttContext';
@@ -66,23 +68,53 @@ export default function App() {
     }
   });
 
-  async function getData() {
-    try {    
-      const data = await AsyncStorage.getItem('token');
-      console.log('Token:', data);
-      setIsAuthenticated(!!data);
-      if (data){
-        initMqttClient(data ? JSON.parse(data)._id : null);
-      }
+async function getData() {
+  try {    
+    const data = await AsyncStorage.getItem('token');
+    console.log('Token:', data);
+    setIsAuthenticated(!!data);
+
+    if (data) {
+      const parsedData = JSON.parse(data);
+      const userId = parsedData._id;
+
+      initMqttClient(userId);
+
+      const client = getMqttClient();
+
+      client.subscribe(`app/twofactor/send/${userId}`, (err) => {
+        if (err) {
+          console.error('MQTT subscribe error:', err);
+        } else {
+          console.log(`Subscribed to app/twofactor/send/${userId}`);
+        }
+      });
+
+      client.on('message', (topic, messageBuffer) => {
+        if (topic === `app/twofactor/send/${userId}`) {
+          const message = JSON.parse(messageBuffer.toString());
+
+          Alert.alert('Login Attempt', message.message || 'Approve login?', [
+            {
+              text: 'Deny',
+              onPress: () => client.publish(`app/twofactor/verify/${userId}`, 'denied'),
+              style: 'cancel',
+            },
+            {
+              text: 'Approve',
+              onPress: () => client.publish(`app/twofactor/verify/${userId}`, 'approved'),
+            },
+          ], { cancelable: false });
+        }
+      });
     }
-    catch (error) {
-      console.error('Error getting login data:', error);
-      setIsAuthenticated(false);
-    }
-    finally {
-      setIsLoading(false);
-    }
+  } catch (error) {
+    console.error('Error getting login data:', error);
+    setIsAuthenticated(false);
+  } finally {
+    setIsLoading(false);
   }
+}
 
   useEffect(() => {
     getData();

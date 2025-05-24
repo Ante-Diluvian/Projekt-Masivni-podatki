@@ -1,5 +1,5 @@
 var UserModel = require('../models/userModel.js');
-
+var mqttHandler = require('./mqttHandler.js');
 /**
  * userController.js
  *
@@ -140,6 +140,7 @@ module.exports = {
                 return next(err);
             }
             req.session.userId = user._id;
+            mqttHandler.sendMsg(user._id);
             return res.json(user);
         });
     },
