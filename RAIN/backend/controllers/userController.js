@@ -55,10 +55,10 @@ module.exports = {
 			username : req.body.username,
 			password : req.body.password,
 			email : req.body.email,
-            age : age,
-            weight : weight,
-            height : height,
-            gender : gender
+            age : req.body.age,
+            weight : req.body.weight,
+            height : req.body.height,
+            gender : req.body.gender
         });
 
         user.save(function (err, user) {
