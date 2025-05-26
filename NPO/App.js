@@ -3,9 +3,12 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkLoginStatus } from './api/auth';
+import { Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { loginImageToServer } from './flaskServer';
 
-//mqtt
-import { initMqttClient, getMqttClient  } from './MqttContext';
+// mqtt
+import { initMqttClient, getMqttClient } from './MqttContext';
 
 // Navigation
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -51,6 +54,7 @@ function AppStack({ onLogout }) {
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRecognized, setIsRecognized] = useState(false);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (event) => {
@@ -88,15 +92,50 @@ export default function App() {
       const data = await AsyncStorage.getItem('token');
       console.log('Token:', data);
       setIsAuthenticated(!!data);
-      if (data){
-        initMqttClient(data ? JSON.parse(data)._id : null);
+
+      if (data) {
+        const parsedData = JSON.parse(data);
+        const userId = parsedData._id;
+
+        initMqttClient(userId);
+
+        const client = getMqttClient();
+        client.removeAllListeners('message');
+        client.subscribe(`app/twofactor/send/${userId}`, (err) => {
+          if (err) {
+            console.error('MQTT subscribe error:', err);
+          } else {
+            console.log(`Subscribed to app/twofactor/send/${userId}`);
+          }
+        });
+
+        client.on('message', (topic, messageBuffer) => {
+          if (topic === `app/twofactor/send/${userId}`) {
+            const message = JSON.parse(messageBuffer.toString());
+
+            Alert.alert('Login Attempt', message.message || 'Approve login?', [
+              {
+                text: 'Deny',
+                onPress: () => {
+                  client.publish(`app/twofactor/verify/${userId}`, JSON.stringify('denied'), { qos: 2 });
+                },
+                style: 'cancel',
+              },
+              {
+                text: 'Approve',
+                onPress: () =>{
+                  openCamera();
+                  client.publish(`app/twofactor/verify/${userId}`, JSON.stringify('approved'), { qos: 2 });
+                },
+              },
+            ], { cancelable: false });
+          }
+        });
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Error getting login data:', error);
       setIsAuthenticated(false);
-    }
-    finally {
+    } finally {
       setIsLoading(false);
     }
   }
@@ -110,14 +149,14 @@ export default function App() {
   
   return (
     <>
-    <StatusBar style="light" />
-    <NavigationContainer>
-      {isAuthenticated ? (
-        <AppStack onLogout={() => setIsAuthenticated(false)}/>
-      ) : (
-        <AuthStack onLogin={() => setIsAuthenticated(true)} />
-      )}
-    </NavigationContainer>
+      <StatusBar style="light" />
+      <NavigationContainer>
+        {isAuthenticated ? (
+          <AppStack onLogout={() => setIsAuthenticated(false)}/>
+        ) : (
+          <AuthStack onLogin={() => setIsAuthenticated(true)} />
+        )}
+      </NavigationContainer>
     </>
   );
 }
