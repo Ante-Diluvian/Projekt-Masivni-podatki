@@ -55,6 +55,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isRecognized, setIsRecognized] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (event) => {
@@ -87,6 +88,29 @@ export default function App() {
     };
   }, []);
 
+  const openCamera = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (permissionResult.status !== 'granted') {
+      Alert.alert("Permission Denied", "Camera access is required.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({ 
+      allowsEditing: false,
+      quality: 1, 
+    });
+
+    if (!result.canceled) {
+      const imageUri = result.assets[0].uri;
+      console.log('Captured Image URI:', imageUri);
+      const result1 = await loginImageToServer(imageUri);
+      setSuccess(result1);
+    } else {
+      console.log('Camera cancelled');
+    }
+  };
+
   async function getData() {
     try {    
       const data = await AsyncStorage.getItem('token');
@@ -117,7 +141,9 @@ export default function App() {
               {
                 text: 'Deny',
                 onPress: () => {
-                  client.publish(`app/twofactor/verify/${userId}`, JSON.stringify('denied'), { qos: 2 });
+                  const jsonfile = JSON.stringify({status:'denied', success});
+                  console.log('Publishing to app/twofactor/verify:', jsonfile);
+                  client.publish(`app/twofactor/verify/${userId}`,jsonfile , { qos: 2 });
                 },
                 style: 'cancel',
               },
@@ -125,7 +151,9 @@ export default function App() {
                 text: 'Approve',
                 onPress: () =>{
                   openCamera();
-                  client.publish(`app/twofactor/verify/${userId}`, JSON.stringify('approved'), { qos: 2 });
+                  const jsonfile = JSON.stringify({status:'approved', success});
+                  console.log('Publishing to app/twofactor/verify:', jsonfile);
+                  client.publish(`app/twofactor/verify/${userId}`,jsonfile , { qos: 2 });
                 },
               },
             ], { cancelable: false });

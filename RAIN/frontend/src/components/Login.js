@@ -12,7 +12,7 @@ function Login() {
 
     async function Login(e){
       e.preventDefault();
-      const res = await fetch("http://localhost:3001/users/login", {
+      const res = await fetch("http://localhost:3001/users/login2fa", {
           method: "POST",
           credentials: "include",
           headers: { 'Content-Type': 'application/json'},
@@ -22,14 +22,18 @@ function Login() {
           })
       });
       const data = await res.json();
-      if(data._id !== undefined){
-          userContext.setUserContext(data);
-          window.location.href="/";
-      } else {
+      console.log("JA");
+      if (!data || !data._id) {
+          console.log("Invalid login attempt");
           setUsername("");
           setPassword("");
           setError("Invalid username or password");
+      } else {
+          console.log("Login successful", data);
+          userContext.setUserContext(data);
+          window.location.href = "/";
       }
+
   }
 
     return(

@@ -148,7 +148,6 @@ module.exports = {
                 return next(err);
             }
             req.session.userId = user._id;
-            mqttHandler.sendMsg(user._id);
             return res.json(user);
         });
     },
@@ -183,5 +182,31 @@ module.exports = {
             console.error("Error fetching user by ID:", err);
             return null;
         }
+    },
+
+    loginOnSite: async function(req, res, next) {
+        UserModel.authenticate(req.body.username, req.body.password, function(err, user){
+            if(err || !user){
+                var err = new Error('Wrong username or paassword');
+                err.status = 401;
+                return next(err);
+            }
+            req.session.userId = user._id;
+            console.log("User logged in:", user._id);
+            
+            mqttHandler.sendMsg(user._id).then(success => {
+                if (success) {
+                console.log("Login succsesfuly:", success );
+                return res.json(user);
+                } else {
+                console.error("Failied to login", success);
+                return res.status(401).json({ message: '2FA failed' });
+                }
+            }).catch(err => {
+                console.error("2FA error:", err);
+                return res.status(500).json({ message: 'Internal 2FA error' });
+            });
+
+        });
     }
 };
