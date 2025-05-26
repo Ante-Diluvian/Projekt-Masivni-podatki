@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { flask } from './api/api';
 
 export const loginImageToServer = async (imageUri) => {
   try {
@@ -44,8 +45,8 @@ export const registerImageToServer = async (imageUri,username) => {
     const formData = new FormData();
     const filename = imageUri.split('/').pop();
     const fileType = filename.split('.').pop();
-    const mimeType = `register/${fileType}`;
-    
+    const mimeType = `image/${fileType}`;
+
     formData.append('username', username);
     formData.append('image', {
       uri: imageUri,
@@ -53,18 +54,19 @@ export const registerImageToServer = async (imageUri,username) => {
       type: mimeType,
     });
 
-
     const response = await fetch('http://194.163.176.154:5000/register', {
       method: 'POST',
       body: formData,
     });
 
     const responseData = await response.json();
-    const [success, error] =  responseData;
-    console.log(responseData);
-    return success;
+
+    if(response.ok && responseData.status === true)
+      return true;
+    else
+      return false;
   } catch (error) {
-    console.log(responseData);
-    return null;
+    console.error('Error uploading image:', error);
+    return false;
   }
 };

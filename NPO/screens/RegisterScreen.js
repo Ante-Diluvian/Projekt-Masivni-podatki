@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Alert, View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, ActivityIndicator } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import { Image, Alert, View, Text, TextInput, TouchableOpacity, ImageBackground, StyleSheet, ActivityIndicator } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { StatusBar } from 'expo-status-bar';
 import { register } from '../api/auth';
+import { registerImageToServer } from '../flaskServer';
 
 const RegisterScreen = ({ navigation }) => {
     const [step, setStep] = useState(1);
+    const [imageLoaded, setImageLoaded] = useState(false);
 
     //Step 1
     const [username, setUsername] = useState('');
@@ -19,7 +21,8 @@ const RegisterScreen = ({ navigation }) => {
     const [height, setHeight] = useState('');
     const [gender, setGender] = useState('');
 
-    const [imageLoaded, setImageLoaded] = useState(false);
+    //Step 3
+    const [capturedImage, setCapturedImage] = useState(null);
 
     const validateStepOne = () => {
         if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
@@ -49,11 +52,6 @@ const RegisterScreen = ({ navigation }) => {
         return true;
     };
 
-    const handleNext = () => {
-        if (validateStepOne()) 
-            setStep(2);
-    };
-
     const handleRegister = async () => {
         if (!validateStepTwo()) 
             return;
@@ -68,11 +66,37 @@ const RegisterScreen = ({ navigation }) => {
                 height: Number(height),
                 gender: gender.toLowerCase(),
             });
-            navigation.goBack();
+            setStep(3);
         } catch (error) {
             console.error('Registration Error Details:', error);
             Alert.alert('Registration failed', error.response?.data?.message || 'Unknown error');
         }
+    };
+
+    const openCamera = async () => {
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+        if(permissionResult.status !== 'granted') {
+            Alert.alert("Permission Denied", "Camera access is required.");
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({ 
+            allowsEditing: false,
+            quality: 1, 
+        });
+
+        if(!result.canceled) {
+            const imageUri = result.assets[0].uri;
+            console.log('Captured Image URI:', imageUri);
+            setCapturedImage({ uri: imageUri });
+        } else
+            console.log('Camera cancelled');              
+    };
+
+    const handleNext = () => {
+        if (validateStepOne()) 
+            setStep(2);
     };
 
     return (
@@ -134,8 +158,7 @@ const RegisterScreen = ({ navigation }) => {
                     <Text style={styles.textLink}>Already have an account? Login here</Text>
                 </TouchableOpacity>
             </>
-          )}
-
+            )}
             {step === 2 && (
             <>
                 <Text style={styles.title}>Register - Step 2</Text>
@@ -178,6 +201,47 @@ const RegisterScreen = ({ navigation }) => {
 
                 <TouchableOpacity onPress={() => setStep(1)}>
                     <Text style={styles.textLink}>Back to Step 1</Text>
+                </TouchableOpacity>
+            </>
+            )}
+            {step === 3 && (
+            <>
+                <Text style={styles.title}>Face Registration</Text>
+
+                {capturedImage ? (
+                <>
+                    <Text style={{ textAlign: 'center', marginBottom: 10 }}>Preview:</Text>
+                    <Image source={{ uri: capturedImage.uri }} style={{ width: '100%', height: 300, marginBottom: 15 }} />
+                </>
+                ) : (
+                <TouchableOpacity style={styles.button} onPress={openCamera}>
+                    <Text style={styles.buttonText}>Take Photo</Text>
+                </TouchableOpacity>
+                )}
+
+                {capturedImage && (
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={async () => {
+                    if (!capturedImage) 
+                        return;
+
+                    const success = await registerImageToServer(capturedImage.uri, username);
+                    console.log("Server response:", success);
+
+                    if (success == true) {
+                        Alert.alert('Success', 'Image uploaded. You can now log in.');
+                        navigation.goBack();
+                    } else
+                        Alert.alert('Upload failed', 'Please try again.');  
+                }}
+                >
+                    <Text style={styles.buttonText}>Upload & Finish</Text>
+                </TouchableOpacity>
+                )}
+
+                <TouchableOpacity onPress={() => setCapturedImage(null)}>
+                    <Text style={styles.textLink}>Retake</Text>
                 </TouchableOpacity>
             </>
             )}
