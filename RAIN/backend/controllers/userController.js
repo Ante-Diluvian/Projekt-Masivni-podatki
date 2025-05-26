@@ -54,7 +54,11 @@ module.exports = {
         var user = new UserModel({
 			username : req.body.username,
 			password : req.body.password,
-			email : req.body.email
+			email : req.body.email,
+            age : age,
+            weight : weight,
+            height : height,
+            gender : gender
         });
 
         user.save(function (err, user) {
@@ -92,6 +96,10 @@ module.exports = {
             user.username = req.body.username ? req.body.username : user.username;
 			user.password = req.body.password ? req.body.password : user.password;
 			user.email = req.body.email ? req.body.email : user.email;
+            user.age = req.body.age ? req.body.age : req.body.age;
+            user.weight = req.body.weight ? req.body.weight : req.body.weight;
+            user.height = req.body.height ? req.body.height : req.body.height;
+            user.gender = req.body.gender ? req.body.gender : req.body.gender;
 			
             user.save(function (err, user) {
                 if (err) {
@@ -166,5 +174,14 @@ module.exports = {
                 return res.status(401).json({message: 'Unauthorized'});   
             return res.json(user);
         });
+    },
+
+    getUserById: async function (id) {
+        try {
+            return await User.findById(id);
+        } catch (err) {
+            console.error("Error fetching user by ID:", err);
+            return null;
+        }
     }
 };

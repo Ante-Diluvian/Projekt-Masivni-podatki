@@ -1,4 +1,13 @@
 user app_guest
 topic write app/workout
-topic read  app/workout
-topic read  app/response/#
+topic read app/workout
+topic write status/online
+topic read status/online
+topic write status/offline
+topic read status/offline
+topic write app/response/#
+topic read app/response/#
+topic write app/twofactor/send/#
+topic read app/twofactor/send/#
+topic write app/twofactor/verify/#
+topic read app/twofactor/verify/#

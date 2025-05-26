@@ -57,49 +57,35 @@ export default function App() {
   const [isRecognized, setIsRecognized] = useState(false);
 
   useEffect(() => {
-    const handleAppStateChange = (nextAppState) => {
-      if (nextAppState === 'background' || nextAppState === 'inactive') {
-        const client = getMqttClient();
-        AsyncStorage.getItem('token').then(data => {
-          if (!client || !data) return;
-          const userId = data ? JSON.parse(data)._id : null;
-          client.publish("status/offline", userId, 0, false);
-          console.log('App is in the background or inactive');
-          console.log('User ID:', userId);
-        });
-      } else if (nextAppState === 'active') {
-        console.log('App is active');
-      }
-    };
+    const subscription = AppState.addEventListener('change', (event) => {
+      const handleAppStateChange = async () => {
+        if (event === 'background' || event === 'inactive') {
+          const client = getMqttClient();
+          if (!client) return;
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
+          try {
+            const data = await AsyncStorage.getItem('token');
+            if (!data) return;
+
+            const userId = JSON.parse(data)._id;
+            client.publish("status/offline", userId, 0, false);
+            console.log('App is in the background or inactive');
+            console.log('User ID:', userId);
+          } catch (error) {
+            console.error('Error handling app state change:', error);
+          }
+        } else if (event === 'active') {
+          console.log('App is active');
+        }
+      };
+
+      handleAppStateChange();
+    });
 
     return () => {
       subscription.remove();
     };
   }, []);
-
-  const openCamera = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-
-    if (permissionResult.status !== 'granted') {
-      Alert.alert("Permission Denied", "Camera access is required.");
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({ 
-      allowsEditing: false,
-      quality: 1, 
-    });
-
-    if (!result.canceled) {
-      const imageUri = result.assets[0].uri;
-      console.log('Captured Image URI:', imageUri);
-      await loginImageToServer(imageUri);
-    } else {
-      console.log('Camera cancelled');
-    }
-  };
 
   async function getData() {
     try {    

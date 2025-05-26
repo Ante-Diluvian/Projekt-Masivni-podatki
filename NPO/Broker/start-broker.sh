@@ -8,17 +8,25 @@ ACL_FILE="$CONFIG_DIR/acl"
 USERNAME="app_guest"
 PASSWORD="fentanyl"
 
-echo "🔧 Starting Mosquitto broker with Docker Compose..."
-docker-compose up -d
-
-sleep 2
+# 0. Fix permissions on the config directory
 echo "🔐 Fixing permissions... part 1"
 sudo chown root:root ./config/acl
 sudo chmod 0600 ./config/acl
 sudo chown root:root ./config/passwd
 sudo chmod 0600 ./config/passwd
 
-# 1. Ustvari passwd datoteko (samo 1 uporabnik)
+echo "🔧 Starting Mosquitto broker with Docker Compose..."
+docker-compose up -d
+
+sleep 2
+# 1a. Fix permissions on the passwd file (again)
+echo "🔐 Fixing permissions... part 2"
+docker exec mosquitto chown root:root /mosquitto/config/passwd || true
+docker exec mosquitto chmod 0600 /mosquitto/config/passwd || true
+docker exec mosquitto chown root:root /mosquitto/config/acl || true
+docker exec mosquitto chmod 0600 /mosquitto/config/acl || true
+
+# 1c. Create the password file
 if [ ! -f "$PASSWD_FILE" ]; then
   echo "🆕 Creating password file and adding user '$USERNAME'..."
   docker run --rm -v "$(pwd)/config:/mosquitto/config" eclipse-mosquitto \
@@ -33,14 +41,9 @@ else
   fi
 fi
 
-# 1b. Popravi pravice znotraj kontejnerja
-echo "🔐 Fixing permissions... part 2"
-docker exec mosquitto chown root:root /mosquitto/config/passwd || true
-docker exec mosquitto chmod 0600 /mosquitto/config/passwd || true
-docker exec mosquitto chown root:root /mosquitto/config/acl || true
-docker exec mosquitto chmod 0600 /mosquitto/config/acl || true
 
-# 2. Ustvari ACL datoteko, če še ne obstaja
+
+# 2. Create the ACL file
 if [ ! -f "$ACL_FILE" ]; then
   echo "🆕 Creating new ACL file..."
   cat <<EOF > "$ACL_FILE"
@@ -54,15 +57,19 @@ topic write status/offline
 topic read status/offline
 topic write app/response/#
 topic read app/response/#
+topic write app/twofactor/send/#
+topic read app/twofactor/send/#
+topic write app/twofactor/verify/#
+topic read app/twofactor/verify/#
 EOF
 else
   echo "✅ ACL file already exists."
 fi
 
-# 3. Pridobi javni IP naslov
+# 3. Get the public IP address
 PUBLIC_IP=$(curl -s ifconfig.me || echo "unknown")
 
-# 4. Izpiši podatke
+# 4. Display information
 echo ""
 echo "📡 Mosquitto broker is running."
 echo "📍 Local container IP address:"

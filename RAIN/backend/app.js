@@ -14,6 +14,7 @@ var gpsRoutes = require('./routes/gpsRoutes');
 var accelerometerRoutes = require('./routes/accelerometerRoutes');
 var scraperRoutes = require('./routes/scraperRoutes');
 var recipeRoutes = require('./routes/recipeRoutes');
+var exerciseRoutes = require('./routes/exerciseRoutes');
 
 var app = express();
 
@@ -90,6 +91,7 @@ app.use('/gps', gpsRoutes);
 app.use('/accelerometer', accelerometerRoutes);
 app.use('/scrape', scraperRoutes);
 app.use('/recipes', recipeRoutes);
+app.use('/exercises', exerciseRoutes);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

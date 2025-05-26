@@ -24,6 +24,7 @@
     "mongoose": "^6.9.0",
     "morgan": "~1.9.1",
     "mqtt": "^5.13.0",
+    "multer": "^2.0.0",
     "rain": "file:"
   },
   "main": "app.js",
