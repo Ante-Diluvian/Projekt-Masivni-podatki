@@ -152,3 +152,43 @@ client.on('message', (topic, messageBuffer) => {
   client.on('reconnect', () => {
     console.log('MQTT client reconnecting...');
   });
+
+  
+function sendMsg(userId) {
+  const verifyTopic = `app/twofactor/verify/${userId}`;
+  const sendTopic = `app/twofactor/send/${userId}`;
+  client.unsubscribe(verifyTopic);
+  client.subscribe(verifyTopic, (err) => {
+    if (err) {
+      console.error("Subscribe error:", err);
+      return;
+    }
+    console.log(`Subscribed to ${verifyTopic}`);
+    client.publish(sendTopic, JSON.stringify({ message: "KURAC JE SKOCA" }));
+    console.log('Published 2FA message to:', sendTopic);
+
+  });
+
+  const messageHandler = (topic, message) => {
+    if (topic === verifyTopic) {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log("Verification data:", data);
+      } catch (e) {
+        console.error("Invalid JSON message:", message.toString());
+      }
+    }
+  };
+  
+  // Register the handler
+
+  client.once('message', messageHandler);
+  
+  // Return a way to unsubscribe later if needed
+  return {
+    unsubscribe: () => {
+      client.unsubscribe(verifyTopic);
+      client.removeListener('message', messageHandler);
+    }
+  };
+}module.exports = {sendMsg}
