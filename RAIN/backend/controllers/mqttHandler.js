@@ -108,7 +108,7 @@ client.on('message', (topic, messageBuffer) => {
 
       const workoutData = {
         name: exercise || "Workout", 
-        user_id: user1,
+        user_id: user1._id,
         startTimestamp: new Date(startTime),
         endTimestamp: new Date(endTime),
         duration: duration,

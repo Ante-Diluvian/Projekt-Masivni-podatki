@@ -161,7 +161,7 @@ const formatDuration = (totalSeconds) => {
 const sendExerciseData = () => {
     const client = getMqttClient();
     if(client){
-        const user1 = user._id;
+        const user1 = user;
         const latitude = latitudeArray;
         const longitude = longitudeArray;
         const altitude = altitudeArray; 

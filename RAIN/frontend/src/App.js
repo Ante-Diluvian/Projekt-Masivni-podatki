@@ -8,6 +8,7 @@ import Logout from "./components/Logout";
 import Footer from './components/Footer.js';
 import Recipes from './components/Recipes.js';  
 import Recipe from './components/Recipe.js';
+import Statistics from './components/Statistics.js'; 
 
 function App() {
   const [user, setUser] = useState(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -32,6 +33,7 @@ function App() {
           <Route path="/logout" element={<Logout/>} />
           <Route path="/recipes" element={<Recipes/>} />
           <Route path="/recipes/:id" element={<Recipe/>} />
+          <Route path="/statistics" element={<Statistics/>} />
         </Routes>
         </div>
         <Footer/>
