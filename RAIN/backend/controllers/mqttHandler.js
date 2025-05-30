@@ -84,7 +84,7 @@ client.on('message', (topic, messageBuffer) => {
   if (topic === "app/workout") {
     try {
       const message = JSON.parse(messageBuffer.toString());
-      const { exercise, user1, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue } = message;
+      const { exerciseName, user1, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue } = message;
       console.log('Received exercise data:', message);
 
       const gps = new Gps({latitude: [latitude].flat(), longitude: [longitude].flat(), altitude: [altitude].flat()});
@@ -107,8 +107,8 @@ client.on('message', (topic, messageBuffer) => {
       });
 
       const workoutData = {
-        name: exercise || "Workout", 
-        user_id: user1,
+        name: exerciseName || "Workout", 
+        user_id: user1._id,
         startTimestamp: new Date(startTime),
         endTimestamp: new Date(endTime),
         duration: duration,
