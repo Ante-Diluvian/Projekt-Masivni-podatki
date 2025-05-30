@@ -124,18 +124,18 @@ module.exports = {
         const userId = req.params.userId;
         console.log("Fetching workouts for userId:", userId);
 
-        WorkoutModel.find({ user_id: userId }, function (err, workouts) {
-            if (err) {
-                console.error("Error finding workouts:", err);
-                return res.status(500).json({
-                    message: 'Error when getting workouts by user.',
-                    error: err
-                });
-            }
+        WorkoutModel.find({ user_id: userId }).populate('user_id').populate('accelerometer').populate('gps').exec(function (err, workouts) {
+                if (err) {
+                    console.error("Error finding workouts:", err);
+                    return res.status(500).json({
+                        message: 'Error when getting workouts by user.',
+                        error: err
+                    });
+                }
+            return res.json(workouts);
+        });
+    }
 
-        return res.json(workouts);
-    });
-}
 };
 
 function saveWorkout(data, callback) {

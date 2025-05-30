@@ -1,36 +1,55 @@
 import { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 
-export function WorkoutChart({ workouts }) {
+export function WorkoutChart({ workouts, name }) {
   const chartRef = useRef(null);
 
   useEffect(() => {
-    if (!chartRef.current || workouts.length === 0) return;
+    if (!chartRef.current || workouts.length === 0 || !name) return;
+
+    const filteredWorkouts = workouts.filter(w => w.name === name);
+    if (filteredWorkouts.length === 0) return;
+
     const chartInstance = new Chart(chartRef.current, {
       type: 'line',
       data: {
-        labels: workouts.map(w => w.name),
+        labels: filteredWorkouts.map(w => new Date(w.startTimestamp).toLocaleString()),
         datasets: [{
-            data: workouts.map(w => w.caloriesBurned),
-            borderColor: 'rgb(75, 192, 192)',
-          }]
+          label: `Calories Burned - ${name}`,
+          data: filteredWorkouts.map(w => w.caloriesBurned),
+          borderColor: 'rgb(75, 192, 192)',
+          fill: false
+        }]
       },
       options: {
-
         plugins: {
           title: {
             display: true,
-            text: 'Workout Calories Chart'
+            text: `Workout Calories Over Time: ${name}`
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Time'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Calories Burned'
+            }
           }
         }
       }
     });
 
-    return () => chartInstance.destroy(); 
-  }, [workouts]);
+    return () => chartInstance.destroy();
+  }, [workouts, name]);
 
   return (
-    <div>
+    <div className="mt-4">
       <canvas ref={chartRef} />
     </div>
   );

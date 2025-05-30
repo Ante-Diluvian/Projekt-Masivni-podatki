@@ -34,7 +34,7 @@ function Workouts() {
   if (loading) return <p>Loading workouts...</p>;
   if (error) return <p>Error: {error}</p>;
 
-  return (
+ return (
     <div className="vh-200 pt-5 mt-5">
       <h2>Workout Data</h2>
       {workouts.length === 0 ? (
@@ -45,25 +45,53 @@ function Workouts() {
             {workouts.map((workout) => (
               <li key={workout._id}>
                 <strong>{workout.name}</strong><br />
-                User id: {workout.user_id} <br />
+                User: {workout.user_id?.username || 'N/A'} <br />
                 Duration: {workout.duration} s<br />
                 Calories: {workout.caloriesBurned} kcal<br />
                 Distance: {workout.distance} km<br />
-                Accelerometer id: {workout.accelerometer}<br />
-                GPS id: {workout.gps}<br />
+                
+                {workout.accelerometer && (
+                  <>
+                    Avg Speed: {workout.accelerometer.avgSpeed} m/s<br />
+                    Max Speed: {workout.accelerometer.maxSpeed} m/s<br />
+                  </>
+                )}
+                
+              {workout.gps ? (
+                workout.gps.latitude?.length > 0 ? (
+                  <>
+                    GPS Points:<br />
+                    Latitude: {workout.gps.latitude.join(', ')}<br />
+                    Longitude: {workout.gps.longitude.join(', ')}<br />
+                    Altitude: {workout.gps.altitude.join(', ')}<br />
+                  </>
+                ) : (
+                  <>
+                    GPS Points: 0 point recorded<br />
+                  </>
+                )
+              ) : (
+                <>
+                  GPS Points: 0 point recorded<br />
+                </>
+              )}
+
+                
                 Start Time: {new Date(workout.startTimestamp).toLocaleString()}<br />
                 End Time: {new Date(workout.endTimestamp).toLocaleString()}<br />
                 <hr />
               </li>
             ))}
           </ul>
-            <WorkoutChart workouts={workouts} />
-            <LatestChart workouts={workouts} />
-            <Exercise workouts={workouts} />
+          
+          <WorkoutChart workouts={workouts} name="6830f9833d0ba745596c3bf0" />
+          <LatestChart workouts={workouts} />
+          <Exercise workouts={workouts} />
         </>
       )}
     </div>
   );
+
 }
 
 export default Workouts;
