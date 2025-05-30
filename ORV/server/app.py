@@ -30,10 +30,10 @@ db = client["test"]
 users_collection = db["users"]
 
 # Load the pre-trained embedding model
-embedding_model = tf.keras.models.load_model("model/final_model.keras")
+embedding_model = tf.keras.models.load_model("model/final_mobilefacenet_fold1.keras")
 
 # Preprocess image function
-def preprocess_image(img_path, target_size=(112, 112)):
+def preprocess_image(img_path, target_size=(224, 224)):
     img = image.load_img(img_path, target_size=target_size)
     img_array = image.img_to_array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
