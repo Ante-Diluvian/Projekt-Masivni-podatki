@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../userContext';
 import {WorkoutChart, LatestChart, Exercise } from '../Chart';
+import WorkoutMap from '../WorkoutMap';
 
 function Workouts() {
   const { user } = useContext(UserContext);
@@ -57,24 +58,25 @@ function Workouts() {
                   </>
                 )}
                 
-              {workout.gps ? (
-                workout.gps.latitude?.length > 0 ? (
-                  <>
-                    GPS Points:<br />
-                    Latitude: {workout.gps.latitude.join(', ')}<br />
-                    Longitude: {workout.gps.longitude.join(', ')}<br />
-                    Altitude: {workout.gps.altitude.join(', ')}<br />
-                  </>
-                ) : (
-                  <>
-                    GPS Points: 0 point recorded<br />
-                  </>
-                )
-              ) : (
+              {workout.gps && workout.gps.latitude?.length > 0 ? (
                 <>
-                  GPS Points: 0 point recorded<br />
+                  <ul>
+                    {workout.gps.latitude.map((lat, index) => (
+                      <li key={index}>
+                        Point {index + 1}:<br />
+                        Latitude: {lat}, Longitude: {workout.gps.longitude?.[index] ?? 'N/A'}, Altitude: {workout.gps.altitude?.[index] ?? 'N/A'}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {workout.gps.latitude.length >= 3 && (//Izberi pri kolkih št. točkah nariši zemljevid potem pa se spremini  v WorkoutMap.js
+                    <WorkoutMap gps={workout.gps} />
+                  )}
                 </>
+              ) : (
+                <p>GPS Points: 0 point recorded</p>
               )}
+
 
                 
                 Start Time: {new Date(workout.startTimestamp).toLocaleString()}<br />
