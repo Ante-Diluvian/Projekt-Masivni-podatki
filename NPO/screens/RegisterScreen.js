@@ -80,8 +80,8 @@ const RegisterScreen = ({ navigation }) => {
             <Capture
                 username={username}
                 onDone={() => {
-                Alert.alert('Done', 'Face registration complete');
-                navigation.goBack();
+                    Alert.alert('Done', 'Face registration complete');
+                    navigation.goBack();
                 }}
             />
         );

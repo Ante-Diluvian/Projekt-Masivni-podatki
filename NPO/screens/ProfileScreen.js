@@ -37,14 +37,14 @@ const ProfileScreen = ({ navigation, onLogout }) => {
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Ionicons name="chevron-back" size={28} color="#FF3B3F" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Profil uporabnika</Text>
+            <Text style={styles.headerTitle}>User profile</Text>
           </View>
 
           <View style={styles.content}>
-            {/* Osnovni podatki */}
-            <Text style={styles.sectionTitle}>Osnovni podatki</Text>
+            {/* Account information */}
+            <Text style={styles.sectionTitle}>Account info</Text>
             <View style={styles.infoRow}>
-              <Text style={styles.label}>Uporabniško ime:</Text>
+              <Text style={styles.label}>Username:</Text>
               <Text style={styles.value}>{user.username}</Text>
             </View>
             <View style={styles.infoRow}>
@@ -52,26 +52,26 @@ const ProfileScreen = ({ navigation, onLogout }) => {
               <Text style={styles.value}>{user.email}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.label}>Geslo:</Text>
+              <Text style={styles.label}>Password:</Text>
               <Text style={styles.value}>{user.password}</Text>
             </View>
 
-            {/* Dodatni podatki */}
-            <Text style={styles.sectionTitle}>Dodatni podatki</Text>
+            {/* Personal information */}
+            <Text style={styles.sectionTitle}>Personal info</Text>
             <View style={styles.infoRow}>
-              <Text style={styles.label}>Starost:</Text>
+              <Text style={styles.label}>Age:</Text>
               <Text style={styles.value}>{user.age || '—'}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.label}>Teža (kg):</Text>
+              <Text style={styles.label}>Weight (kg):</Text>
               <Text style={styles.value}>{user.weight || '—'}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.label}>Višina (cm):</Text>
+              <Text style={styles.label}>Height (cm):</Text>
               <Text style={styles.value}>{user.height || '—'}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.label}>Spol:</Text>
+              <Text style={styles.label}>Gender:</Text>
               <Text style={styles.value}>{user.gender || '—'}</Text>
             </View>
           </View>
