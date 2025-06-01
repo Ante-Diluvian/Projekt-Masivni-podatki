@@ -307,3 +307,84 @@ body {
 .recipe-back-link:hover {
   background-color: #FF3B3F;
 }
+
+.profile-details {
+  text-align: left;
+  margin-top: 30px;
+  background-color: #3A3A3C;
+  padding: 20px;
+  border-radius: 15px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.profile-details p {
+  margin: 10px 0;
+  color: #FFFFFF;
+}
+
+.profile-details strong {
+  color: #FF3B3F;
+}
+.admin-container {
+  background-color: #1C1C1E;
+  min-height: 100vh;
+}
+
+.nav-tabs {
+  border-bottom: 1px solid #3A3A3C;
+}
+
+.nav-tabs .nav-link {
+  color: #FFFFFF;
+  background-color: transparent;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  position: relative;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #FF3B3F;
+  border: none;
+}
+
+.nav-tabs .nav-link.active {
+  color: #FF3B3F;
+  background-color: transparent;
+  border: none;
+}
+
+.nav-tabs .nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: #FF3B3F;
+}
+
+.table-dark {
+  background-color: #2C2C2E;
+  color: #FFFFFF;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.table-dark th,
+.table-dark td {
+  border-color: #3A3A3C;
+}
+
+.table-dark thead th {
+  background-color: #3A3A3C;
+  color: #FF3B3F;
+  border-bottom: none;
+}
+.table-dark tbody tr:hover {
+  background-color: rgba(255, 59, 63, 0.1);
+}
+.badge.bg-danger {
+  background-color: #FF3B3F !important;
+}
+

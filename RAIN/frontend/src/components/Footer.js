@@ -34,7 +34,7 @@ function Footer() {
                     <Link className="nav-link text-white" to="/register">Register</Link>
                   </li>
                   <li className="nav-item mx-2">
-                    <Link className="nav-link text-white" to="/Admin">Admin</Link>
+                    <Link className="nav-link text-white" to="/admin">Admin</Link>
                   </li>
                 </>
               )}

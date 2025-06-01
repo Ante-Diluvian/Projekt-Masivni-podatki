@@ -13,6 +13,7 @@ import Recipe from './components/Recipe.js';
 import Statistics from './components/Statistics.js'; 
 import MainScreen from './components/MainScreen.js';
 import Admin from './components/Admin.js';
+import Profile from './components/Profile.js';
 
 function App() {
   const [user, setUser] = useState(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -38,7 +39,8 @@ function App() {
           <Route path="/recipes" element={<Recipes/>} />
           <Route path="/recipes/:id" element={<Recipe/>} />
           <Route path="/statistics" element={<Statistics/>} />
-          <Route path='/Admin' element={<Admin/>} />
+          <Route path='/admin' element={<Admin/>} />
+          <Route path='/profile' element={<Profile/>} />
         </Routes>
         </div>
         <Footer/>
