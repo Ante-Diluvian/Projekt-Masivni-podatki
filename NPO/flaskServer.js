@@ -40,18 +40,21 @@ export const loginImageToServer = async (imageUri) => {
   }
 };
 
-export const registerImageToServer = async (imageUri,username) => {
+export const registerFileToServer = async (zipPath, username) => {
   try {
+    const filename = zipPath.split('/').pop();
+
+    console.log('Zajemam ZIP iz:', zipPath);
+    console.log('Ime datoteke:', filename);
+
     const formData = new FormData();
-    const filename = imageUri.split('/').pop();
-    const fileType = filename.split('.').pop();
-    const mimeType = `image/${fileType}`;
 
     formData.append('username', username);
-    formData.append('image', {
-      uri: imageUri,
-      name: filename,
-      type: mimeType,
+
+    formData.append('file', {
+      uri: zipPath.startsWith('file://') ? zipPath : `file://${zipPath}`,
+      name: filename || 'frames.zip',
+      type: 'application/zip',
     });
 
     const response = await fetch('http://194.163.176.154:5000/register', {
@@ -60,13 +63,10 @@ export const registerImageToServer = async (imageUri,username) => {
     });
 
     const responseData = await response.json();
-
-    if(response.ok && responseData.status === true)
-      return true;
-    else
-      return false;
+    console.log('Response: ', responseData);
+    return response.ok && responseData.status === true;
   } catch (error) {
-    console.error('Error uploading image:', error);
+    console.error('Error uploading file:', error);
     return false;
   }
 };
