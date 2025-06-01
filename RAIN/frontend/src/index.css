@@ -1,13 +1,112 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Arial', sans-serif;
+  background-color: #1C1C1E;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.login-box {
+  background-color: #2C2C2E;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  width: 100%;
+  max-width: 400px;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.login-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #FFFFFF;
+  margin-bottom: 0;
+}
+
+.login-subtitle {
+  font-size: 36px;
+  font-weight: bold;
+  color: #FF3B3F;
+  margin-bottom: 30px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login-input {
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background-color: #3A3A3C;
+  color: white;
+  font-size: 16px;
+}
+
+.login-input:focus {
+  outline: 2px solid #FF3B3F;
+}
+
+.login-button {
+  background-color: #FF3B3F;
+  color: white;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-button:hover {
+  background-color: #e03438;
+}
+
+.login-error {
+  color: #ff6b6b;
+  font-size: 14px;
+}
+
+.login-register {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.login-register a {
+  color: #FF3B3F;
+  text-decoration: none;
+}
+
+.footer-custom {
+  background-color: #1C1C1E;
+  color: #FFFFFF;
+  border-top: 1px solid #2C2C2E;
+  font-size: 14px;
+}
+
+.footer-custom .container {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.footer-link {
+  color: #FFFFFF;
+  text-decoration: none;
+  font-weight: 500;
+  margin: 0 8px;
+  transition: color 0.2s ease-in-out;
+}
+
+.footer-link:hover {
+  color: #FF3B3F;
 }
