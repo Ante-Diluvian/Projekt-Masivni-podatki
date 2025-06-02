@@ -5,7 +5,7 @@ import { logout } from '../api/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfileScreen = ({ navigation, onLogout }) => {
-    const [user, setUser] = useState({ username: '', email: '', password: '' });
+    const [user, setUser] = useState({ username: '', email: '', password: '', age: '', weight: '', height: '', gender: '', });
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -31,46 +31,72 @@ const ProfileScreen = ({ navigation, onLogout }) => {
     } 
 
     return (
-        <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.innerContainer}>
+          <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={28} color="#FF3B3F" />
+              <Ionicons name="chevron-back" size={28} color="#FF3B3F" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Profil uporabnika</Text>
-        </View>
+            <Text style={styles.headerTitle}>User profile</Text>
+          </View>
 
-        <View style={styles.content}>
+          <View style={styles.content}>
+            {/* Account information */}
+            <Text style={styles.sectionTitle}>Account info</Text>
             <View style={styles.infoRow}>
-            <Text style={styles.label}>Uporabniško ime:</Text>
-            <Text style={styles.value}>{user.username}</Text>
+              <Text style={styles.label}>Username:</Text>
+              <Text style={styles.value}>{user.username}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Email:</Text>
+              <Text style={styles.value}>{user.email}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Password:</Text>
+              <Text style={styles.value}>{user.password}</Text>
             </View>
 
+            {/* Personal information */}
+            <Text style={styles.sectionTitle}>Personal info</Text>
             <View style={styles.infoRow}>
-            <Text style={styles.label}>Email:</Text>
-            <Text style={styles.value}>{user.email}</Text>
+              <Text style={styles.label}>Age:</Text>
+              <Text style={styles.value}>{user.age || '—'}</Text>
             </View>
-
             <View style={styles.infoRow}>
-            <Text style={styles.label}>Geslo:</Text>
-            <Text style={styles.value}>{user.password}</Text>
+              <Text style={styles.label}>Weight (kg):</Text>
+              <Text style={styles.value}>{user.weight || '—'}</Text>
             </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Height (cm):</Text>
+              <Text style={styles.value}>{user.height || '—'}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.label}>Gender:</Text>
+              <Text style={styles.value}>{user.gender || '—'}</Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.logoutContainer}>
-            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
             <Text style={styles.logoutText}>Logout</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
         </View>
-        </SafeAreaView>
-    );
+      </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1C1C1E',
-    padding: 20,
-    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 30,
+  },
+  innerContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
   },
   header: {
     flexDirection: 'row',
@@ -89,8 +115,15 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FF3B3F',
+    marginTop: 20,
+    marginBottom: 10,
+  },
   infoRow: {
-    marginBottom: 15,
+    marginBottom: 12,
   },
   label: {
     fontSize: 18,

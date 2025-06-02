@@ -62,11 +62,13 @@ export default function App() {
       const handleAppStateChange = async () => {
         if (event === 'background' || event === 'inactive') {
           const client = getMqttClient();
-          if (!client) return;
+          if (!client) 
+            return;
 
           try {
             const data = await AsyncStorage.getItem('token');
-            if (!data) return;
+            if (!data) 
+              return;
 
             const userId = JSON.parse(data)._id;
             client.publish("status/offline", userId, 0, false);

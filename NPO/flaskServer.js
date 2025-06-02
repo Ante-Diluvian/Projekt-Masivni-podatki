@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { flask } from './api/api';
 
 export const loginImageToServer = async (imageUri) => {
   try {
@@ -39,20 +40,22 @@ export const loginImageToServer = async (imageUri) => {
   }
 };
 
-export const registerImageToServer = async (imageUri,username) => {
+export const registerFileToServer = async (zipPath, username) => {
   try {
-    const formData = new FormData();
-    const filename = imageUri.split('/').pop();
-    const fileType = filename.split('.').pop();
-    const mimeType = `register/${fileType}`;
-    
-    formData.append('username', username);
-    formData.append('image', {
-      uri: imageUri,
-      name: filename,
-      type: mimeType,
-    });
+    const filename = zipPath.split('/').pop();
 
+    console.log('Zajemam ZIP iz:', zipPath);
+    console.log('Ime datoteke:', filename);
+
+    const formData = new FormData();
+
+    formData.append('username', username);
+
+    formData.append('file', {
+      uri: zipPath.startsWith('file://') ? zipPath : `file://${zipPath}`,
+      name: filename || 'frames.zip',
+      type: 'application/zip',
+    });
 
     const response = await fetch('http://194.163.176.154:5000/register', {
       method: 'POST',
@@ -60,11 +63,10 @@ export const registerImageToServer = async (imageUri,username) => {
     });
 
     const responseData = await response.json();
-    const [success, error] =  responseData;
-    console.log(responseData);
-    return success;
+    console.log('Response: ', responseData);
+    return response.ok && responseData.status === true;
   } catch (error) {
-    console.log(responseData);
-    return null;
+    console.error('Error uploading file:', error);
+    return false;
   }
 };
