@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import './recipeCarousel.css';
 
-function RecipeCarousel() {
+export default function RecipeCarousel() {
   const mockRecipes = [
     { title: 'Chicken Salad Bowl', calories: 500 },
     { title: 'Grilled Salmon & Quinoa', calories: 650 },
@@ -10,145 +11,144 @@ function RecipeCarousel() {
     { title: 'Pasta Primavera', calories: 550 },
   ];
 
-  const visibleCount = 3;
+  // Funkcija: koliko kartic želimo videti hkrati
+  const getVisibleCount = () => {
+    const w = window.innerWidth;
+    if (w < 768) return 1;
+    if (w < 1024) return 2;
+    return 3;
+  };
+
+  const [visibleCount, setVisibleCount] = useState(getVisibleCount());
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(true);
   const timeoutRef = useRef(null);
 
+  // Posodobitev visibleCount ob resize
+  useEffect(() => {
+    const handleResize = () => {
+      setVisibleCount(getVisibleCount());
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Za “infinite loop” razširimo seznam receptov za `visibleCount` na koncu
+  const extendedRecipes = [
+    ...mockRecipes,
+    ...mockRecipes.slice(0, visibleCount),
+  ];
+  const total = mockRecipes.length;
+
+  // Koliko odstotkov znaša ENA karta glede na širino tracka
+  const cardWidthPercent = 100 / extendedRecipes.length;
+
+  // Premik na naslednjo karto
   const next = () => {
-    setCurrentIndex((prev) => (prev + 1) % mockRecipes.length);
+    setCurrentIndex((prev) => prev + 1);
+    setIsAnimating(true);
   };
 
+  // Premik na prejšnjo karto
   const prev = () => {
-    setCurrentIndex((prev) =>
-      prev === 0 ? mockRecipes.length - 1 : prev - 1
-    );
+    if (currentIndex === 0) {
+      // Če smo na prvi, prestavimo index na “duplicate tail” in po animaciji na zadnjo pravo karto
+      setCurrentIndex(total);
+      setIsAnimating(true);
+      setTimeout(() => {
+        setIsAnimating(false);
+        setCurrentIndex(total - 1);
+      }, 500);
+    } else {
+      setCurrentIndex((prev) => prev - 1);
+      setIsAnimating(true);
+    }
   };
 
+  // Reset timerja
   const resetTimeout = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
 
+  // Avtomatski napredek na 3s
   useEffect(() => {
     resetTimeout();
-    timeoutRef.current = setTimeout(() => {
-      next();
-    }, 3000);
-
+    timeoutRef.current = setTimeout(next, 3000);
     return () => resetTimeout();
+  }, [currentIndex, visibleCount]);
+
+  // Ko pridemo do “duplicate slice” (index == total), reset index na 0 brez animacije
+  useEffect(() => {
+    if (currentIndex === total) {
+      setTimeout(() => {
+        setIsAnimating(false);
+        setCurrentIndex(0);
+      }, 500);
+    }
   }, [currentIndex]);
 
-  const getVisibleRecipes = () => {
-    let visible = [];
-    for (let i = 0; i < visibleCount; i++) {
-      visible.push(mockRecipes[(currentIndex + i) % mockRecipes.length]);
-    }
-    return visible;
-  };
-
-  const visibleRecipes = getVisibleRecipes();
-
   return (
-    <div
-      style={{
-        position: 'relative',
-        maxWidth: '900px',
-        margin: 'auto',
-        color: 'white',
-        userSelect: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        height: '180px',
-      }}
-    >
-      {/* Gumb Nazaj */}
+    <div className="carousel-container">
+      {/* Gumb “Nazaj” */}
       <button
+        className="carousel-button carousel-button--left"
         onClick={() => {
           prev();
           resetTimeout();
-        }}
-        style={{
-          backgroundColor: 'rgba(255, 59, 48, 0.8)',
-          border: 'none',
-          borderRadius: '0.5rem',
-          width: '30px',     // fiksna širina gumba
-          height: '100%',    // višina kot carousel
-          color: 'white',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          fontSize: '48px',
-          userSelect: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 0,
-          marginRight: '15px',
         }}
         aria-label="Previous recipe"
       >
         ‹
       </button>
 
-      {/* Prikaz receptov */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '15px',
-          flexGrow: 1,
-          height: '100%',
-        }}
-      >
-        {visibleRecipes.map((recipe, idx) => (
-          <div
-            key={idx}
-            className="card bg-dark text-white"
-            style={{
-              borderRadius: '0.5rem',
-              padding: '1rem',
-              flex: '1 0 calc(33.333% - 10px)',
-              minWidth: 0,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              textAlign: 'center',
-              boxShadow: '0 0 10px rgba(0,0,0,0.5)',
-            }}
-          >
-            <h5 className="card-title">{recipe.title}</h5>
-            <p className="card-text">{recipe.calories} kcal</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Gumb Naprej */}
+      {/* Gumb “Naprej” */}
       <button
+        className="carousel-button carousel-button--right"
         onClick={() => {
           next();
           resetTimeout();
-        }}
-        style={{
-          backgroundColor: 'rgba(255, 59, 48, 0.8)',
-          border: 'none',
-          borderRadius: '0.5rem',
-          width: '30px',      // fiksna širina gumba
-          height: '100%',     // višina kot carousel
-          color: 'white',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          fontSize: '48px',
-          userSelect: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 0,
-          marginLeft: '15px',
         }}
         aria-label="Next recipe"
       >
         ›
       </button>
+
+      {/* TRACK */}
+      <div
+        className="carousel-track"
+        style={{
+          // Širina tracka = (#kartic * 100 / visibleCount)%
+          width: `${(extendedRecipes.length * 100) / visibleCount}%`,
+          // Pomik: vsakič premečemo za cardWidthPercent % tracka
+          transform: `translateX(-${currentIndex * cardWidthPercent}%)`,
+          transition: isAnimating ? 'transform 500ms ease' : 'none',
+        }}
+      >
+        {extendedRecipes.map((recipe, idx) => {
+          // Preverimo, ali je ta karta “center” (za senco/scale)
+          const relIdx = idx - currentIndex;
+          const isCenter = relIdx === 1;
+
+          return (
+            <div
+              key={idx}
+              className={`carousel-card${
+                isCenter ? ' carousel-card--center' : ''
+              }`}
+              style={{
+                // Vsaka karta = cardWidthPercent % širine tracka
+                flex: `0 0 ${cardWidthPercent}%`,
+                maxWidth: `${cardWidthPercent}%`,
+              }}
+            >
+              <h5 style={{ margin: 0, marginBottom: '0.5rem' }}>
+                {recipe.title}
+              </h5>
+              <p style={{ margin: 0 }}>{recipe.calories} kcal</p>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
-
-export default RecipeCarousel;
