@@ -1,48 +1,20 @@
 import { useContext } from "react";
 import { UserContext } from "../userContext";
-import { Link } from "react-router-dom";
 
 function Footer() {
   const { user } = useContext(UserContext);
 
   return (
-<footer className=" bg-dark footer-custom mt-auto">
-  <div className="container text-center py-2">
-    <p className="mb-2 text-muted small">© 2025</p>
-   <ul className="nav justify-content-center">
-              {user ? (
-                <>
-                  <li className="nav-item mx-2">
-                    <Link className="nav-link text-white" to="/recipes">Recipes</Link>
-                  </li>
-                  <li className="nav-item mx-2">
-                    <Link className="nav-link text-white" to="/statistics">Statistics</Link>
-                  </li>
-                  <li className="nav-item mx-2">
-                    <Link className="nav-link text-white" to="/profile">Profile</Link>
-                  </li>
-                  {user.user_type === 1 && (
-                  <li className="nav-item mx-2">
-                    <Link className="nav-link text-white" to="/admin">Admin</Link>
-                  </li>
-                  )}
-                  <li className="nav-item mx-2">
-                    <Link className="nav-link text-danger" to="/logout">Logout</Link>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li className="nav-item mx-2">
-                    <Link className="nav-link text-white" to="/login">Login</Link>
-                  </li>
-                  <li className="nav-item mx-2">
-                    <Link className="nav-link text-white" to="/register">Register</Link>
-                  </li>
-                </>
-              )}
-            </ul>
-  </div>
-</footer>
+    <footer className="bg-dark text-light mt-auto py-3">
+      <div className="container text-center small">
+        <p className="mb-1">
+          © {new Date().getFullYear()} IME — All rights reserved.
+        </p>
+        {user && user.user_type === 1 && (
+          <p className="text-muted mb-0">Admin Access Enabled</p>
+        )}
+      </div>
+    </footer>
   );
 }
 
