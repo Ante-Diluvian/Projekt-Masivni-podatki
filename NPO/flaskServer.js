@@ -31,9 +31,7 @@ export const loginImageToServer = async (imageUri) => {
 
     const responseData = await response.json();
     console.log(responseData);
-    const [success, error] =  responseData;
-
-    return success;
+    return responseData.success;
   } catch (error) {
     console.log(responseData);
     return null;

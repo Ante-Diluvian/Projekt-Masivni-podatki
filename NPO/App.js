@@ -91,25 +91,29 @@ export default function App() {
   }, []);
 
   const openCamera = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+  try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      if (permissionResult.status !== 'granted') {
+        Alert.alert("Permission Denied", "Camera access is required.");
+        return false;
+      }
 
-    if (permissionResult.status !== 'granted') {
-      Alert.alert("Permission Denied", "Camera access is required.");
-      return;
-    }
+      const result = await ImagePicker.launchCameraAsync({ 
+        allowsEditing: false,
+        quality: 1, 
+      });
 
-    const result = await ImagePicker.launchCameraAsync({ 
-      allowsEditing: false,
-      quality: 1, 
-    });
-
-    if (!result.canceled) {
-      const imageUri = result.assets[0].uri;
-      console.log('Captured Image URI:', imageUri);
-      const result1 = await loginImageToServer(imageUri);
-      setSuccess(result1);
-    } else {
-      console.log('Camera cancelled');
+      if (!result.canceled) {
+        const imageUri = result.assets[0].uri;
+        console.log('Captured Image URI:', imageUri);
+        const recognitionResult = await loginImageToServer(imageUri);
+        console.log("Recognition Result:", recognitionResult);
+        return recognitionResult;
+      }
+      return false;
+    } catch (error) {
+      console.error('Camera error:', error);
+      return false;
     }
   };
 
@@ -134,7 +138,11 @@ export default function App() {
             console.log(`Subscribed to app/twofactor/send/${userId}`);
           }
         });
-
+        console.log('Subscribing to topic:', `app/twofactor/send/${userId}`);
+        client.on('message', (topic, message) => {
+          console.log('Received MQTT message on topic:', topic);
+          console.log('Message content:', message.toString());
+        });
         client.on('message', (topic, messageBuffer) => {
           if (topic === `app/twofactor/send/${userId}`) {
             const message = JSON.parse(messageBuffer.toString());
@@ -151,9 +159,9 @@ export default function App() {
               },
               {
                 text: 'Approve',
-                onPress: () =>{
-                  openCamera();
-                  const jsonfile = JSON.stringify({status:'approved', success});
+                onPress: async () =>{
+                  const recognitionSuccess = await openCamera();
+                  const jsonfile = JSON.stringify({status: 'approved', success: recognitionSuccess,});
                   console.log('Publishing to app/twofactor/verify:', jsonfile);
                   client.publish(`app/twofactor/verify/${userId}`,jsonfile , { qos: 2 });
                 },

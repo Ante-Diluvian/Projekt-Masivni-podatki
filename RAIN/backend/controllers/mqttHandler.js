@@ -119,7 +119,7 @@ client.on('message', (topic, messageBuffer) => {
       }
 
       workoutController.saveWorkout(workoutData);
-      console.log("✅ Workout saved to MongoDB");
+      console.log(" Workout saved to MongoDB");
     } catch (err) {
       console.error('Failed to parse MQTT message:', err);
     }
