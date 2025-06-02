@@ -16,7 +16,7 @@ function Footer() {
                     <Link className="nav-link text-white" to="/recipes">Recipes</Link>
                   </li>
                   <li className="nav-item mx-2">
-                    <Link className="nav-link text-white" to="/statistics">Statistics</Link>
+                    <Link className="nav-link text-white" to="/statistics">Workouts</Link>
                   </li>
                   <li className="nav-item mx-2">
                     <Link className="nav-link text-white" to="/profile">Profile</Link>

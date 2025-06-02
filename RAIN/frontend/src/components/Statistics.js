@@ -46,12 +46,17 @@ function Workouts() {
             {workouts.map((workout) => (
               <button
                 key={workout._id.toString()}
-                className={`list-group-item list-group-item-action bg-dark text-white border-0 mb-2 ${
-                  selectedWorkout && selectedWorkout._id.toString() === workout._id.toString()
-                    ? 'active bg-secondary'
-                    : ''
-                }`}
-                style={{ cursor: 'pointer' }}
+                className="list-group-item list-group-item-action text-white mb-2"
+                style={{
+                  cursor: 'pointer',
+                  backgroundColor: '#2C2C2E',
+                  border: 'none',
+                  borderLeft: selectedWorkout && selectedWorkout._id.toString() === workout._id.toString()
+                    ? '4px solid #FF3B30'
+                    : '4px solid transparent',
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 0 20px rgba(0,0,0,0.5)',
+                }}
                 onClick={() => setSelectedWorkout(workout)}
               >
                 <h6 className="mb-1">{workout.name}</h6>
@@ -66,8 +71,8 @@ function Workouts() {
 
         <div className="col-md-9">
           {selectedWorkout ? (
-            <div className="card bg-dark text-white shadow-sm">
-              <div className="card-body">
+            <div className="card text-white shadow-sm" style={{ borderRadius: '0.5rem' }}>
+              <div className="card-body" style={{ backgroundColor: '#2C2C2E', boxShadow: '0 0 20px rgba(0,0,0,0.5)', borderRadius: '0.5rem'}}>
 
                 <div className="row">
                   <div className="col-md-6">
