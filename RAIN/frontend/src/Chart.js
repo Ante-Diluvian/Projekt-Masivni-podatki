@@ -112,26 +112,44 @@ export function SpeedChart({ workout }) {
       data: {
         labels: ['Avg Speed (m/s)', 'Max Speed (m/s)'],
         datasets: [{
-          label: workout.name,
           data: [avgSpeed, maxSpeed],
           backgroundColor: [
             'rgba(255, 206, 86, 0.6)',
             'rgba(153, 102, 255, 0.6)'
           ],
+          borderColor: [
+            'rgba(255, 206, 86, 1)',
+            'rgba(153, 102, 255, 1)'
+          ],
+          borderWidth: 1
         }]
       },
-      options: {
+       options: {
+        indexAxis: 'x',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           title: {
             display: true,
-            text: `Speeds for: ${workout.name}`
+            text: ``
+          },
+          legend: {
+            display: false
           }
         },
         scales: {
+          x: {
+            title: {
+              display: true,
+              text: ''
+            }
+          },
           y: {
-            beginAtZero: true
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Speed (m/s)'
+            }
           }
         }
       }
@@ -236,7 +254,7 @@ export function WorkoutMetricsChart({ workout }) {
         plugins: {
           title: {
             display: true,
-            text: `Key Metrics: ${workout.name}`
+            text: ``
           },
           legend: {
             display: false
@@ -298,7 +316,7 @@ export function ElevationChart({ workout }) {
         plugins: {
           title: {
             display: true,
-            text: `Elevation Profile: ${workout.name}`
+            text: ``
           },
           legend: {
             display: false
