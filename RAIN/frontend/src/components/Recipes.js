@@ -3,7 +3,6 @@ import { UserContext } from '../userContext';
 import { Link } from 'react-router-dom';
 
 function Recipes() {
-    const userContext = useContext(UserContext); 
     const [recipes, setRecipes] = useState([]);
 
     useEffect(function(){
