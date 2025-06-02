@@ -22,6 +22,8 @@ export function WorkoutChart({ workouts, name }) {
         }]
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           title: {
             display: true,
@@ -49,12 +51,11 @@ export function WorkoutChart({ workouts, name }) {
   }, [workouts, name]);
 
   return (
-    <div className="mt-4">
+    <div className="mt-4" style={{ height: '300px', width: '100%' }}>
       <canvas ref={chartRef} />
     </div>
   );
 }
-
 
 export function LatestChart({ workouts }) {
   const chartRef = useRef(null);
@@ -64,22 +65,28 @@ export function LatestChart({ workouts }) {
 
     const lastWorkout = workouts[workouts.length - 1];
     const chartInstance = new Chart(chartRef.current, {
-      type: 'bar', 
+      type: 'bar',
       data: {
         labels: ['Duration (s)', 'Calories Burned', 'Distance (m)'],
         datasets: [{
-            label: lastWorkout.name,
-            data: [lastWorkout.duration, lastWorkout.caloriesBurned, lastWorkout.distance],
-            backgroundColor: ['rgba(54, 162, 235, 0.6)','rgba(255, 99, 132, 0.6)','rgba(75, 192, 192, 0.6)'],
-          }]
-        },
+          label: lastWorkout.name,
+          data: [lastWorkout.duration, lastWorkout.caloriesBurned, lastWorkout.distance],
+          backgroundColor: [
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(75, 192, 192, 0.6)'
+          ],
+        }]
+      },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           title: {
             display: true,
             text: `Last Workout: ${lastWorkout.name}`
           }
-        },
+        }
       }
     });
 
@@ -87,7 +94,54 @@ export function LatestChart({ workouts }) {
   }, [workouts]);
 
   return (
-    <div className="mt-4">
+    <div className="mt-4" style={{ height: '300px', width: '100%' }}>
+      <canvas ref={chartRef} />
+    </div>
+  );
+}
+
+export function SpeedChart({ workout }) {
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!chartRef.current || !workout?.accelerometer) return;
+
+    const { avgSpeed, maxSpeed } = workout.accelerometer;
+    const chartInstance = new Chart(chartRef.current, {
+      type: 'bar',
+      data: {
+        labels: ['Avg Speed (m/s)', 'Max Speed (m/s)'],
+        datasets: [{
+          label: workout.name,
+          data: [avgSpeed, maxSpeed],
+          backgroundColor: [
+            'rgba(255, 206, 86, 0.6)',
+            'rgba(153, 102, 255, 0.6)'
+          ],
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: `Speeds for: ${workout.name}`
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    return () => chartInstance.destroy();
+  }, [workout]);
+
+  return (
+    <div className="mt-4" style={{ height: '300px', width: '100%' }}>
       <canvas ref={chartRef} />
     </div>
   );
@@ -112,11 +166,18 @@ export function Exercise({ workouts }) {
       data: {
         labels: labels,
         datasets: [{
-            data: data,
-            backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)'],
-          }]
+          data: data,
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 206, 86, 0.6)',
+            'rgba(75, 192, 192, 0.6)'
+          ],
+        }]
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           title: {
             display: true,
@@ -130,7 +191,142 @@ export function Exercise({ workouts }) {
   }, [workouts]);
 
   return (
-    <div className="mt-4">
+    <div className="mt-4" style={{ height: '300px', width: '100%' }}>
+      <canvas ref={chartRef} />
+    </div>
+  );
+}
+
+export function WorkoutMetricsChart({ workout }) {
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!chartRef.current || !workout) return;
+
+    const dataValues = [
+      workout.duration,
+      workout.caloriesBurned,
+      workout.distance
+    ];
+    const labels = ['Duration (s)', 'Calories Burned', 'Distance (m)'];
+
+    const chartInstance = new Chart(chartRef.current, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: workout.name,
+          data: dataValues,
+          backgroundColor: [
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(75, 192, 192, 0.6)'
+          ],
+          borderColor: [
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 99, 132, 1)',
+            'rgba(75, 192, 192, 1)'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: `Key Metrics: ${workout.name}`
+          },
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Value'
+            }
+          },
+          x: {
+            title: {
+              display: true,
+              text: ''
+            }
+          }
+        }
+      }
+    });
+
+    return () => chartInstance.destroy();
+  }, [workout]);
+
+  return (
+    <div className="mt-4" style={{ height: '300px', width: '100%' }}>
+      <canvas ref={chartRef} />
+    </div>
+  );
+}
+
+export function ElevationChart({ workout }) {
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!chartRef.current || !workout?.gps?.altitude) return;
+
+    const altitudeArray = workout.gps.altitude;
+    const labels = altitudeArray.map((_, i) => `Pt ${i + 1}`);
+
+    const chartInstance = new Chart(chartRef.current, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Altitude (m)',
+          data: altitudeArray,
+          borderColor: 'rgba(255, 159, 64, 0.8)',
+          backgroundColor: 'rgba(255, 159, 64, 0.4)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: `Elevation Profile: ${workout.name}`
+          },
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'GPS Point Index'
+            }
+          },
+          y: {
+            beginAtZero: false,
+            title: {
+              display: true,
+              text: 'Altitude (m)'
+            }
+          }
+        }
+      }
+    });
+
+    return () => chartInstance.destroy();
+  }, [workout]);
+
+  return (
+    <div className="mt-4" style={{ height: '300px', width: '100%' }}>
       <canvas ref={chartRef} />
     </div>
   );

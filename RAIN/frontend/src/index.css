@@ -387,3 +387,15 @@ body {
 .badge.bg-danger {
   background-color: #FF3B3F !important;
 }
+
+/*---- Statistics ----*/
+.workout-detail-text {
+  color: #FFFFFF;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.workout-detail-highlight {
+  color: #FF3B3F;
+  font-weight: bold;
+}
