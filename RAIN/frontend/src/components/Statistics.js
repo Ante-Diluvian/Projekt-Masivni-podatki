@@ -36,64 +36,59 @@ function Workouts() {
   if (error) return <p>Error: {error}</p>;
 
  return (
-    <div className="vh-200 pt-5 mt-5">
-      <h2>Workout Data</h2>
+    <div className="container pt-5 mt-5">
+      <h2 className="mb-4">Workout Statistics</h2>
+
       {workouts.length === 0 ? (
-        <p>No workouts found.</p>
+        <p className="text-muted">No workouts found.</p>
       ) : (
         <>
-          <ul>
+          <div className="row">
             {workouts.map((workout) => (
-              <li key={workout._id}>
-                <strong>{workout.name}</strong><br />
-                User: {workout.user_id?.username || 'N/A'} <br />
-                Duration: {workout.duration} s<br />
-                Calories: {workout.caloriesBurned} kcal<br />
-                Distance: {workout.distance} km<br />
-                
-                {workout.accelerometer && (
-                  <>
-                    Avg Speed: {workout.accelerometer.avgSpeed} m/s<br />
-                    Max Speed: {workout.accelerometer.maxSpeed} m/s<br />
-                  </>
-                )}
-                
-              {workout.gps && workout.gps.latitude?.length > 0 ? (
-                <>
-                  <ul>
-                    {workout.gps.latitude.map((lat, index) => (
-                      <li key={index}>
-                        Point {index + 1}:<br />
-                        Latitude: {lat}, Longitude: {workout.gps.longitude?.[index] ?? 'N/A'}, Altitude: {workout.gps.altitude?.[index] ?? 'N/A'}
-                      </li>
-                    ))}
-                  </ul>
+              <div className="col-md-6 mb-4" key={workout._id}>
+                <div className="card h-100 shadow-sm">
+                  <div className="card-body">
+                    <h5 className="card-title">{workout.name}</h5>
+                    <h6 className="card-subtitle mb-2 text-muted">
+                      User: {workout.user_id?.username || 'N/A'}
+                    </h6>
+                    <p className="card-text">
+                      <strong>Duration:</strong> {workout.duration} s<br />
+                      <strong>Calories:</strong> {workout.caloriesBurned} kcal<br />
+                      <strong>Distance:</strong> {workout.distance} km<br />
+                      {workout.accelerometer && (
+                        <>
+                          <strong>Avg Speed:</strong> {workout.accelerometer.avgSpeed} m/s<br />
+                          <strong>Max Speed:</strong> {workout.accelerometer.maxSpeed} m/s<br />
+                        </>
+                      )}
+                      <strong>Start:</strong> {new Date(workout.startTimestamp).toLocaleString()}<br />
+                      <strong>End:</strong> {new Date(workout.endTimestamp).toLocaleString()}
+                    </p>
 
-                  {workout.gps.latitude.length >= 3 && (//Izberi pri kolkih št. točkah nariši zemljevid potem pa se spremini  v WorkoutMap.js
-                    <WorkoutMap gps={workout.gps} />
-                  )}
-                </>
-              ) : (
-                <p>GPS Points: 0 point recorded</p>
-              )}
-
-
-                
-                Start Time: {new Date(workout.startTimestamp).toLocaleString()}<br />
-                End Time: {new Date(workout.endTimestamp).toLocaleString()}<br />
-                <hr />
-              </li>
+                    {workout.gps?.latitude?.length >= 3 ? (
+                      <div className="mt-3">
+                        <WorkoutMap gps={workout.gps} />
+                      </div>
+                    ) : (
+                      <p className="text-muted">GPS: No valid data</p>
+                    )}
+                  </div>
+                </div>
+              </div>
             ))}
-          </ul>
-          
-          <WorkoutChart workouts={workouts} name="6830f9833d0ba745596c3bf0" />
-          <LatestChart workouts={workouts} />
-          <Exercise workouts={workouts} />
+          </div>
+
+          <div className="mt-5">
+            <h4>Visual Charts</h4>
+            <WorkoutChart workouts={workouts} name={user._id} />
+            <LatestChart workouts={workouts} />
+            <Exercise workouts={workouts} />
+          </div>
         </>
       )}
     </div>
   );
-
 }
 
 export default Workouts;

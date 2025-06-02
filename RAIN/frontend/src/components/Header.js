@@ -25,12 +25,11 @@ function Header() {
 
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav ms-auto gap-2 align-items-center">
-              <li className="nav-item">
-                <Link className="nav-link" to="/">Home</Link>
-              </li>
-
               {user ? (
                 <>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/">Home</Link>
+                  </li>
                   <li className="nav-item">
                     <Link className="nav-link" to="/recipes">Recipes</Link>
                   </li>
