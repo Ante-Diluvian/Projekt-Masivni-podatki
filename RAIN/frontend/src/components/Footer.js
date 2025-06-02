@@ -21,6 +21,11 @@ function Footer() {
                   <li className="nav-item mx-2">
                     <Link className="nav-link text-white" to="/profile">Profile</Link>
                   </li>
+                  {user.user_type === 1 && (
+                  <li className="nav-item mx-2">
+                    <Link className="nav-link text-white" to="/admin">Admin</Link>
+                  </li>
+                  )}
                   <li className="nav-item mx-2">
                     <Link className="nav-link text-danger" to="/logout">Logout</Link>
                   </li>
@@ -32,9 +37,6 @@ function Footer() {
                   </li>
                   <li className="nav-item mx-2">
                     <Link className="nav-link text-white" to="/register">Register</Link>
-                  </li>
-                  <li className="nav-item mx-2">
-                    <Link className="nav-link text-white" to="/admin">Admin</Link>
                   </li>
                 </>
               )}

@@ -14,6 +14,7 @@ import Statistics from './components/Statistics.js';
 import MainScreen from './components/MainScreen.js';
 import Admin from './components/Admin.js';
 import Profile from './components/Profile.js';
+import NewExercise from './components/NewExercise.js'
 
 function App() {
   const [user, setUser] = useState(localStorage.user ? JSON.parse(localStorage.user) : null);
@@ -41,6 +42,7 @@ function App() {
           <Route path="/statistics" element={<Statistics/>} />
           <Route path='/admin' element={<Admin/>} />
           <Route path='/profile' element={<Profile/>} />
+          <Route path='/newexecise' element={<NewExercise/>} />
         </Routes>
         </div>
         <Footer/>

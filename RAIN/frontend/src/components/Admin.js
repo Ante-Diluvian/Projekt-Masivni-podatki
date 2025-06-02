@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
 import { UserContext } from '../userContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 
 function AdminPanel() {
   const [activeTab, setActiveTab] = useState('users');
@@ -55,55 +55,94 @@ function AdminPanel() {
       setLoading(false);
     }
   };
+  
+  const deleteExercises = async (id) =>{
+    try {
+      setLoading(true);
+      const res = await fetch(`http://localhost:3001/exercises/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.message || 'Failed to delete exercise');
+      } else {
+        setExercises(prev => prev.filter(ex => ex._id !== id));
+      }
+    } catch (err) {
+      setError('Network error occurred');
+    } finally {
+      setLoading(false);
+    }
+  }
 
+  const deleteUser = async (id) =>{
+    try {
+      setLoading(true);
+      const res = await fetch(`http://localhost:3001/users/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setError(err.message || 'Failed to delete exercise');
+      } else {
+        setUsers(prev => prev.filter(ex => ex._id !== id));
+      }
+    } catch (err) {
+      setError('Network error occurred');
+    } finally {
+      setLoading(false);
+    }
+  }
 
 
   return (
-    <div className="container-fluid py-4 mt-5 admin-container">
-      <h1 className="text-center mb-4 text-white">Admin Dashboard</h1>
-      
-      <ul className="nav nav-tabs justify-content-center mb-4 border-0">
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => setActiveTab('users')}
-          >
-            Users
-          </button>
-        </li>
-        <li className="nav-item">
-          <button 
-            className={`nav-link ${activeTab === 'exercises' ? 'active' : ''}`}
-            onClick={() => setActiveTab('exercises')}
-          >
-            Exercises
-          </button>
-        </li>
-      </ul>
+    <>
+      {/*
+      {!userContext.user && userContext.user.user_type? <Navigate replace to="/" /> : null}
+      */}
 
-      {error && (
-        <div className="alert alert-danger text-center">
-          {error}
-        </div>
-      )}
+      <div className="container-fluid py-4 mt-5 admin-container">
+        <h1 className="text-center mb-4 text-white">Admin Dashboard</h1>
+        
+        <ul className="nav nav-tabs justify-content-center mb-4 border-0">
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === 'users' ? 'active' : ''}`} onClick={() => setActiveTab('users')}>
+              Users
+            </button>
+          </li>
+          <li className="nav-item">
+            <button className={`nav-link ${activeTab === 'exercises' ? 'active' : ''}`} onClick={() => setActiveTab('exercises')}>
+              Exercises
+            </button>
+          </li>
+        </ul>
 
-      {loading ? (
-        <div className="text-center py-5 text-white-50">
-          <div className="spinner-border text-danger" role="status">
-            <span className="visually-hidden">Loading...</span>
+        {error && (
+          <div className="alert alert-danger text-center">
+            {error}
           </div>
-          <p className="mt-2">Loading data...</p>
-        </div>
-      ) : activeTab === 'users' ? (
-        <UsersTable users={users}  />
-      ) : (
-        <ExercisesTable exercises={exercises}  />
-      )}
-    </div>
+        )}
+
+        {loading ? (
+          <div className="text-center py-5 text-white-50">
+            <div className="spinner-border text-danger" role="status">
+              <span className="visually-hidden" />
+            </div>
+          </div>
+
+        ) : activeTab === 'users' ? (
+          <UsersTable users={users} onDelete={deleteUser} />
+        ) : (
+          <ExercisesTable exercises={exercises} onDelete={deleteExercises} />
+        )}
+      </div>
+    </>
   );
 }
 
-function UsersTable({ users }) {
+function UsersTable({ users, onDelete }) {
   return (
     <div className="table-responsive">
       <table className="table table-dark table-hover">
@@ -123,14 +162,14 @@ function UsersTable({ users }) {
               <td>{user.username}</td>
               <td>{user.email}</td>
               <td>
-                {user.isAdmin ? (
+                {user.user_type === 1 ? (
                   <span className="badge bg-danger">Admin</span>
                 ) : (
                   <span className="badge bg-secondary">User</span>
                 )}
               </td>
               <td>
-                <button className="btn btn-sm btn-outline-danger"> Delete </button>
+                <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(user._id)}> Delete </button>
               </td>
             </tr>
           ))}
@@ -140,7 +179,7 @@ function UsersTable({ users }) {
   );
 }
 
-function ExercisesTable({ exercises}) {
+function ExercisesTable({ exercises, onDelete }) {
   return (
     <div className="table-responsive">
       <table className="table table-dark table-hover">
@@ -158,13 +197,13 @@ function ExercisesTable({ exercises}) {
               <td>{exercise.name}</td>
              
               <td>
-                <button className="btn btn-sm btn-outline-danger">Delete</button>
+                <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(exercise._id)} >Delete</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <button className="btn btn-sm btn-outline-danger"> Add Exercise</button>
+      <Link to="/newexecise" className="btn btn-sm btn-outline-danger"> Add Exercise</Link>
     </div>
   );
 }
