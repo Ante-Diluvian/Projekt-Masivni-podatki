@@ -161,14 +161,15 @@ const formatDuration = (totalSeconds) => {
 const sendExerciseData = () => {
     const client = getMqttClient();
     if(client){
-        const user1 = user._id;
+        const exerciseName = exercise.name;
+        const user1 = user;
         const latitude = latitudeArray;
         const longitude = longitudeArray;
         const altitude = altitudeArray; 
         const endTime = Date.now();
         const metValue = exercise.metValue;
 
-        const message = JSON.stringify({ exercise, user1 , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue });
+        const message = JSON.stringify({ exerciseName, user1 , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue });
         client.publish("app/workout", message);
 
         console.log('MQTT client connected');

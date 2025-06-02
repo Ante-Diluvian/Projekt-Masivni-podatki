@@ -3,41 +3,63 @@ import { UserContext } from "../userContext";
 import { Link } from "react-router-dom";
 
 function Header() {
-  const context = useContext(UserContext);
+  const { user } = useContext(UserContext);
 
   return (
     <header>
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div className="container-fluid">
-          <Link className="navbar-brand" to="/">IME</Link>
-          <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" >
+          <Link className="navbar-brand fw-bold fs-4 text-danger" to="/">IME</Link>
+
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
             <span className="navbar-toggler-icon"></span>
           </button>
+
           <div className="collapse navbar-collapse" id="navbarNav">
-            <ul className="navbar-nav ms-auto">
+            <ul className="navbar-nav ms-auto gap-2 align-items-center">
               <li className="nav-item">
                 <Link className="nav-link" to="/">Home</Link>
               </li>
-              <UserContext.Consumer>
-                        {context => (
-                            context.user ?
-                                <div className="navbar-nav  ml-auto">
-                                    <li><Link className="nav-link" to='/recipes'>Recipes</Link></li>
-                                    <li><Link className="nav-link" to='/profile'>Profile</Link></li>
-                                    <li><Link className="nav-link" to='/logout'>Logout</Link></li>
-                                </div>
-                            :
-                                <div className="navbar-nav  ml-auto">
-                                    <li><Link className="nav-link" to='/login'>Login</Link></li>
-                                    <li><Link className="nav-link" to='/register'>Register</Link></li>
-                                </div>
 
-                        )}
-                    </UserContext.Consumer>
+              {user ? (
+                <>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/recipes">Recipes</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/statistics">Statistics</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/profile">Profile</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className="nav-link text-danger" to="/logout">Logout</Link>
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/login">Login</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className="nav-link" to="/register">Register</Link>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
         </div>
       </nav>
     </header>
   );
-}export default Header;
+}
+
+export default Header;

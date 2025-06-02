@@ -58,7 +58,8 @@ module.exports = {
             age : age,
             weight : weight,
             height : height,
-            gender : gender
+            gender : gender,
+            user_type: 0,
         });
 
         user.save(function (err, user) {

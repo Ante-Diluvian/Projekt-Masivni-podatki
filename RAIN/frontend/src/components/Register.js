@@ -3,99 +3,108 @@ import { useState } from 'react';
 function Register() {
   const [username, setUsername] = useState([]);
   const [password, setPassword] = useState([]);
+  const [confirmPassword, setConfirmPassword] = useState([]);
   const [email, setEmail] = useState([]);
+  const [age, setAge] = useState([]);
+  const [weight, setWeight] = useState([]);
+  const [height, setHeight] = useState([]);
+  const [gender, setGender] = useState([]);
+  const [error, setError] = useState("");
 
-  async function Register(e){
+
+
+  async function handleRegister(e) {
     e.preventDefault();
-    const res = await fetch("http://localhost:3001/users", {
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords don't match");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:3001/users", {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            email: email,
-            username: username,
-            password: password
+          email: email,
+          username: username,
+          password: password,
+          age: age,
+          weight: weight,
+          height: height,
+          gender: gender,
         })
-    });
-    const data = await res.json();
-    if(data._id !== undefined){
-        window.location.href="/login";
+      });
+
+      const data = await res.json();
+       if(data._id !== undefined){
+          window.location.href="/";
+      } else {
+        setError(data.message || "Registration failed");
+      }
+    } catch (err) {
+      setError("An error occurred during registration");
+      console.error(err);
     }
-    else{
-        setUsername("");
-        setPassword("");
-        setEmail("");
-    }
-}
+  }
 
-    return(
-        <section className="vh-100">
-        <div className="container h-100">
-          <div className="row d-flex justify-content-center align-items-center h-100">
-            <div className="col-lg-12 col-xl-11">
-              <div className="card text-black">
-                <div className="card-body p-md-5">
-                  <div className="row justify-content-center align-items-center">
-                    <div className="col-md-10 col-lg-6 col-xl-7 d-flex align-items-center order-1 order-lg-2">
-                      <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-registration/draw1.webp" className="img-fluid" alt="Sample"/>
-                    </div>
-      
-                    <div className="col-md-10 col-lg-6 col-xl-5 order-2 order-lg-1">
-                      <p className="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Sign up</p>
-                      <form onSubmit={Register} className="mx-1 mx-md-4">
-                        
-                      <div className="input-group mb-4">
-                        <span className="input-group-text">
-                            <i className="fas fa-user"></i>
-                        </span>
-                        <input type="text" className="form-control"  value={username} onChange={(e)=>(setUsername(e.target.value))} placeholder="username" />
-                        </div>
+  return (
+    <div className="container d-flex align-items-center justify-content-center min-vh-100">
+      <div className="card p-4 shadow" style={{ maxWidth: '800px', borderRadius: '25px' ,width: '100%', backgroundColor: '#2C2C2E', color: 'white' }}>
+        <h2 className="text-center mb-4" style={{ color: '#FF3B3F' }}>Register</h2>
 
-      
+        <form onSubmit={handleRegister}>
+          {error && <div className="alert alert-danger">{error}</div>}
 
-                        <div className="input-group mb-4">
-                        <span className="input-group-text">
-                        <i className="fas fa-envelope fa-lg me-3 fa-fw"></i>
-                        </span>
-                        <input type="email" className="form-control" value={email} onChange={(e)=>(setEmail(e.target.value))} placeholder="E-mail" />
-                        </div>
-                    
+          <div className="mb-3">
+            <input type="text" name="username" style={{borderRadius: '15px'}} className="form-control bg-dark text-white border-0" placeholder="Username" value={username} onChange={(e)=>(setUsername(e.target.value))} required />
+          </div>
 
-                        <div className="input-group mb-4">
-                        <span className="input-group-text">
-                        <i className="fas fa-lock fa-lg me-3 fa-fw"></i>
-                        </span>
-                        <input type="password" className="form-control" value={password} onChange={(e)=>(setPassword(e.target.value))} placeholder="Password" />
-                        </div>
-                
-                        <div className="input-group mb-4">
-                        <span className="input-group-text">
-                        <i className="fas fa-key fa-lg me-3 fa-fw"></i>
-                        </span>
-                        <input type="password" className="form-control" placeholder="Repeat your password" />
-                        </div>
-      
-                        <div className="form-check mb-5">
-                        <input className="form-check-input me-2" type="checkbox" id="termsCheckbox" />
-                        <label className="form-check-label" htmlFor="termsCheckbox">
-                            I agree to all statements in <a href="">Terms of service</a>
-                        </label>
-                        </div>
+          <div className="mb-3">
+            <input type="email" name="email" style={{borderRadius: '15px'}} className="form-control bg-dark text-white border-0" placeholder="Email" value={email} onChange={(e)=>(setEmail(e.target.value))} required />
+          </div>
 
-                        <div className="d-flex justify-content-center mx-4 mb-3 mb-lg-4">
-                        <button type="submit" className="btn btn-primary btn-lg">Register</button>
-                        </div>
-                      </form>
-                    </div>
-      
-                  </div>
-                </div>
-              </div>
+          <div className="mb-3">
+            <input type="password" name="password" style={{borderRadius: '15px'}} className="form-control bg-dark text-white border-0" placeholder="Password" value={password} onChange={(e)=>(setPassword(e.target.value))} required />
+          </div>
+
+          <div className="mb-3">
+            <input type="password" name="confirmPassword" style={{borderRadius: '15px'}} className="form-control bg-dark text-white border-0" placeholder="Confirm Password" value={confirmPassword} onChange={(e)=>(setConfirmPassword(e.target.value))} required />
+          </div>
+
+          <div className="row">
+            <div className="col-md-4 mb-3">
+              <input type="number" name="age" min="1" max="120" style={{borderRadius: '15px'}} className="form-control bg-dark text-white border-0" placeholder="Age" value={age} onChange={(e)=>(setAge(e.target.value))}/>
+            </div>
+
+            <div className="col-md-4 mb-3">
+              <input type="number" name="weight" min="1" max="500" style={{borderRadius: '15px'}} step="0.1" className="form-control bg-dark text-white border-0" placeholder="Weight (kg)" value={weight} onChange={(e)=>(setWeight(e.target.value))}/>
+            </div>
+            <div className="col-md-4 mb-3">
+              <input type="number" name="height" min="1" max="300" style={{borderRadius: '15px'}} step="0.1" className="form-control bg-dark text-white border-0" placeholder="Height (cm)" value={height} onChange={(e)=>(setHeight(e.target.value))}/>
             </div>
           </div>
-        </div>
-      </section>
-         
-    );
+
+
+          <div className="mb-3">
+            <select name="gender" style={{borderRadius: '15px'}} className="form-select bg-dark text-white border-0" value={gender} onChange={(e)=>(setGender(e.target.value))}>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <button type="submit" style={{borderRadius: '10px'}} className="btn btn-danger w-100">Register</button>
+          <p className="mt-3 text-center">
+            Already have an account? <a href="/login" style={{ color: '#FF3B3F' }}>Login</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
 }
+
 export default Register;
