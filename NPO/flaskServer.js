@@ -44,8 +44,10 @@ export const registerFileToServer = async (zipPath, username) => {
   try {
     const filename = zipPath.split('/').pop();
 
-    console.log('Zajemam ZIP iz:', zipPath);
-    console.log('Ime datoteke:', filename);
+    console.log('Registering file to server...');
+    console.log('ZIP Path:', zipPath);
+    console.log('Username for registration:', username);
+    console.log('Filename:', filename);
 
     const formData = new FormData();
 
@@ -64,7 +66,7 @@ export const registerFileToServer = async (zipPath, username) => {
 
     const responseData = await response.json();
     console.log('Response: ', responseData);
-    return response.ok && responseData.status === true;
+    return responseData.success;
   } catch (error) {
     console.error('Error uploading file:', error);
     return false;

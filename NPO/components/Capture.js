@@ -11,104 +11,107 @@ const Capture = ({ username, onDone }) => {
   const cameraRef = useRef(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [capturedCount, setCapturedCount] = useState(0);
-  const [frames, setFrames] = useState([]);
+  // No longer need 'frames' state as it will be passed directly
+  // const [frames, setFrames] = useState([]);
   const [permission, requestPermission] = useCameraPermissions();
   const CAPTURE_LIMIT = 50;
   const INTERVAL_MS = 200;
 
-    useEffect(() => {
-        if (!permission) 
-            requestPermission();
-    }, [permission]);
+  useEffect(() => {
+    if (!permission)
+      requestPermission();
+  }, [permission]);
 
-    useEffect(() => {
-    if (!isCapturing) 
-        return;
+  useEffect(() => {
+    if (!isCapturing)
+      return;
 
     let isActive = true;
+    const capturedUris = []; 
 
     const captureFrames = async () => {
-        setCapturedCount(0);
-        setFrames([]);
+      setCapturedCount(0);
 
-        for (let i = 0; i < CAPTURE_LIMIT && isActive; i++) {
+      for (let i = 0; i < CAPTURE_LIMIT && isActive; i++) {
         try {
-            if (!cameraRef.current) 
-                throw new Error('Camera not available');
+          if (!cameraRef.current)
+            throw new Error('Camera not available');
 
-            const photo = await cameraRef.current.takePictureAsync({ skipProcessing: true });
+          const photo = await cameraRef.current.takePictureAsync({ skipProcessing: true });
 
-            if (!isActive) 
-                break;
-
-            setFrames(arr => [...arr, photo.uri]);
-            setCapturedCount(i + 1);
-            await new Promise(res => setTimeout(res, INTERVAL_MS));
-        } catch (err) {
-            console.error('Capture error:', err);
-            Alert.alert('Error', err.message || 'Camera capture failed');
+          if (!isActive)
             break;
-        }
-        }
 
-        if (isActive) {
-        setIsCapturing(false);
-        processAndUpload();
+          capturedUris.push(photo.uri);
+          setCapturedCount(i + 1);
+          await new Promise(res => setTimeout(res, INTERVAL_MS));
+        } catch (err) {
+          console.error('Capture error:', err);
+          Alert.alert('Error', err.message || 'Camera capture failed');
+          break;
         }
+      }
+
+      if (isActive) {
+        setIsCapturing(false);
+        processAndUpload(capturedUris);
+      }
     };
 
     captureFrames();
 
     return () => { isActive = false; };
 
-    }, [isCapturing]);
+  }, [isCapturing]);
 
-const processAndUpload = async () => {
-  try {
-    const files = {};
-    for (let i = 0; i < frames.length; i++) {
-      const uri = frames[i];
-      const result = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 224, height: 224 } }], {
-        compress: 0.5,
-        format: ImageManipulator.SaveFormat.JPEG,
-      });
+  const processAndUpload = async (framesToProcess) => {
+    try {
+      console.log('Captured frames:', framesToProcess); 
 
-      const base64 = await FileSystem.readAsStringAsync(result.uri, {
+      const files = {};
+      for (let i = 0; i < framesToProcess.length; i++) {
+        const uri = framesToProcess[i];
+        const result = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: 224, height: 224 } }], {
+          compress: 0.5,
+          format: ImageManipulator.SaveFormat.JPEG,
+        });
+
+        const base64 = await FileSystem.readAsStringAsync(result.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+        files[`frame_${i + 1}.jpg`] = binary;
+      }
+
+      const zipped = zipSync(files);
+      let binaryStr = '';
+      for (let i = 0; i < zipped.length; i += 10000) {
+        binaryStr += String.fromCharCode.apply(null, zipped.subarray(i, i + 10000));
+      }
+
+      const base64Zip = btoa(binaryStr);
+
+      const zipPath = `${FileSystem.cacheDirectory}frames_${Date.now()}.zip`;
+
+      await FileSystem.writeAsStringAsync(zipPath, base64Zip, {
         encoding: FileSystem.EncodingType.Base64,
       });
+      const response = await registerFileToServer(zipPath, username);
 
-      const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-      files[`frame_${i + 1}.jpg`] = binary;
+      if (response) {
+        Alert.alert('Success', 'Frames uploaded successfully');
+        await FileSystem.deleteAsync(zipPath, { idempotent: true });
+        onDone && onDone();
+      } else {
+        Alert.alert('Upload failed', response.message || 'Unknown error');
+        await FileSystem.deleteAsync(zipPath, { idempotent: true });
+      }
+    } catch (e) {
+      console.error('Processing/upload error:', e);
+      Alert.alert('Error', 'Failed to process and upload frames');
     }
-
-    const zipped = zipSync(files);
-    let binaryStr = '';
-    for (let i = 0; i < zipped.length; i += 10000) {
-      binaryStr += String.fromCharCode.apply(null, zipped.subarray(i, i + 10000));
-    }
-
-    const base64Zip = btoa(binaryStr);
-
-    const zipPath = `${FileSystem.cacheDirectory}frames_${Date.now()}.zip`;
-
-    await FileSystem.writeAsStringAsync(zipPath, base64Zip, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
-    const response = await registerFileToServer(zipPath, username);
-
-    if (response.success) {
-      Alert.alert('Success', 'Frames uploaded successfully');
-      await FileSystem.deleteAsync(zipPath, { idempotent: true });
-      onDone && onDone();
-    } else {
-      Alert.alert('Upload failed', response.message || 'Unknown error');
-      await FileSystem.deleteAsync(zipPath, { idempotent: true });
-    }
-  } catch (e) {
-    console.error('Processing/upload error:', e);
-    Alert.alert('Error', 'Failed to process and upload frames');
-  }
-};
+  };
 
   if (!permission) {
     return (
