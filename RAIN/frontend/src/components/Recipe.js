@@ -2,9 +2,11 @@ import { useContext, useState, useEffect } from 'react';
 import { UserContext } from '../userContext';
 import { useParams } from "react-router-dom";
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function Recipe() {
     const userContext = useContext(UserContext);
+    const navigate = useNavigate();
     const { id } = useParams();  
     const [recipe, setRecipe] = useState([]);
     const [error, setError] = useState([]);
@@ -52,9 +54,13 @@ function Recipe() {
                     </div>
                 </div>
 
-                <Link to="/recipes" className="recipe-button-text recipe-back-link">
-                     Back to Recipes
-                </Link>
+                <button
+                onClick={() => navigate(-1)}
+                className="recipe-button-text recipe-back-link"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: '#FF3B3F'}}
+                >
+                ← Go Back
+                </button>
             </div>
         </section>
     );

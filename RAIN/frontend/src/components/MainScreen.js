@@ -2,6 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../userContext';
 import RecipeCarousel from '../RecipeCarousel';
 import { WorkoutChart, LatestChart, Exercise } from '../Chart';
+import { useNavigate } from 'react-router-dom';
 
 function MainScreen() {
   const { user } = useContext(UserContext);
@@ -9,8 +10,12 @@ function MainScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('last');
+  const navigate = useNavigate(); 
 
   useEffect(() => {
+    if (!user?._id)
+      navigate('/login');
+
     const GetWorkouts = async () => {
       if (!user?._id) return;
 
@@ -44,17 +49,15 @@ function MainScreen() {
   if (error) return <div className="alert alert-danger">Error: {error}</div>;
 
   return (
-    <div className="container pt-5 mt-5">
-      <h2 className="text-center text-white mb-4">Welcome back!</h2>
-
+    <div className="container pt-3 mt-5 mb-2.6">
       <div className="mb-5">
-        <h4 className="text-white">Suggested Recipes for This Week</h4>
+        <h4 className="text-center mb-4 login-title">Suggested Recipes for This Week</h4>
         <RecipeCarousel calories={totalCaloriesWeek} />
       </div>
 
       <div className="card text-white shadow-sm" style={{ backgroundColor: '#2C2C2E', borderRadius: '0.5rem' }}>
         <div className="card-body" style={{ boxShadow: '0 0 20px rgba(0,0,0,0.5)', borderRadius: '0.5rem' }}>
-          <h5 className="card-title">Your Weekly Overview</h5>
+          <h5 className="card-title text-center login-title">Your Weekly Overview</h5>
 
           <ul className="nav nav-tabs mt-4 mb-3">
             <li className="nav-item">
