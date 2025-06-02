@@ -92,7 +92,7 @@ function MainScreen() {
           <div className="tab-content">
             {activeTab === 'last' && <LatestChart workouts={workouts} />}
             {activeTab === 'common' && <Exercise workouts={workouts} />}
-            {activeTab === 'summary' && <WorkoutChart workouts={workouts} name={user._id} />}
+            {activeTab === 'summary' && <WorkoutChart workouts={workouts} />}
           </div>
         </div>
       </div>

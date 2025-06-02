@@ -45,19 +45,15 @@ export default function RecipeCarousel() {
     setIsAnimating(true);
   };
 
-  const prev = () => {
-    if (currentIndex === 0) {
-      setCurrentIndex(total);
-      setIsAnimating(true);
-      setTimeout(() => {
-        setIsAnimating(false);
-        setCurrentIndex(total - 1);
-      }, 500);
-    } else {
-      setCurrentIndex((prev) => prev - 1);
-      setIsAnimating(true);
-    }
-  };
+const prev = () => {
+  if (currentIndex === 0) {
+    setIsAnimating(true);
+    setCurrentIndex(-1);
+  } else {
+    setIsAnimating(true);
+    setCurrentIndex((prev) => prev - 1);
+  }
+};
 
   const resetTimeout = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -71,12 +67,21 @@ export default function RecipeCarousel() {
 
   useEffect(() => {
     if (currentIndex === total) {
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         setIsAnimating(false);
         setCurrentIndex(0);
       }, 500);
     }
-  }, [currentIndex]);
+
+    if (currentIndex === -1) {
+      const timeout = setTimeout(() => {
+        setIsAnimating(false);
+        setCurrentIndex(total - 1);
+      }, 500);
+      return () => clearTimeout(timeout);
+    }
+    setIsAnimating(true);
+  }, [currentIndex, total]);
 
   if (!recipes.length) return null;
 
@@ -113,8 +118,7 @@ export default function RecipeCarousel() {
         }}
       >
         {extendedRecipes.map((recipe, idx) => {
-          const relIdx = idx - currentIndex;
-          const isCenter = relIdx === 1;
+          const isCenter = visibleCount > 2 && (idx === currentIndex + 1);
 
             return (
                 <Link

@@ -1,22 +1,21 @@
 import { useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 
-export function WorkoutChart({ workouts, name }) {
+export function WorkoutChart({ workouts }) {
   const chartRef = useRef(null);
 
   useEffect(() => {
-    if (!chartRef.current || workouts.length === 0 || !name) return;
+    if (!chartRef.current || workouts.length === 0) return;
 
-    const filteredWorkouts = workouts.filter(w => w.name === name);
-    if (filteredWorkouts.length === 0) return;
+    const sortedWorkouts = [...workouts].sort((a, b) => new Date(a.startTimestamp) - new Date(b.startTimestamp));
 
     const chartInstance = new Chart(chartRef.current, {
       type: 'line',
       data: {
-        labels: filteredWorkouts.map(w => new Date(w.startTimestamp).toLocaleString()),
+        labels: sortedWorkouts.map(w => new Date(w.startTimestamp).toLocaleString()),
         datasets: [{
-          label: `Calories Burned - ${name}`,
-          data: filteredWorkouts.map(w => w.caloriesBurned),
+          label: `Calories Burned`,
+          data: sortedWorkouts.map(w => w.caloriesBurned),
           borderColor: 'rgb(75, 192, 192)',
           fill: false
         }]
@@ -27,28 +26,22 @@ export function WorkoutChart({ workouts, name }) {
         plugins: {
           title: {
             display: true,
-            text: `Workout Calories Over Time: ${name}`
+            text: `Workout Calories Over Time`
           }
         },
         scales: {
           x: {
-            title: {
-              display: true,
-              text: 'Time'
-            }
+            title: { display: true, text: 'Time' }
           },
           y: {
-            title: {
-              display: true,
-              text: 'Calories Burned'
-            }
+            title: { display: true, text: 'Calories Burned' }
           }
         }
       }
     });
 
     return () => chartInstance.destroy();
-  }, [workouts, name]);
+  }, [workouts]);
 
   return (
     <div className="mt-4" style={{ height: '300px', width: '100%' }}>
