@@ -126,7 +126,10 @@ def login():
     try:
         try:
             img = preprocess_image(img_path) # Preprocess the image
-            new_embedding = embedding_model.predict(img).flatten() # Get the embedding for the new image
+            new_embedding = embedding_model.predict(img) # Get the embedding for the new image
+            if isinstance(new_embedding, list):
+                new_embedding = new_embedding[0]
+            new_embedding = new_embedding.flatten() # Flatten the embedding
         except Exception as e:
             logging.error(f"Image processing or prediction failed: {str(e)}")
             return jsonify({"success": False, "error": "Failed to process image"}), 500 # Internal Server Error
