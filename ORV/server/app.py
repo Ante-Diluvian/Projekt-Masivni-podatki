@@ -49,54 +49,62 @@ def cosine_similarity(a, b):
 
 @app.route("/register", methods=["POST"])
 def register():
-    username = request.form.get("username") # Expecting a username
-    zip_file = request.files.get("file") # Expecting a zip file with images
+    username = request.form.get("username")  # Expecting a username
+    zip_file = request.files.get("file")     # Expecting a zip file with images
 
     if not username or not zip_file:
-        return jsonify({"success": False, "error": "Missing username or file"}), 400 # Bad Request
+        return jsonify({"success": False, "error": "Missing username or file"}), 404
 
-    temp_dir = tempfile.mkdtemp() # Create a temporary directory to extract images
-    zip_path = os.path.join(temp_dir, "images.zip") # Save the uploaded zip file
-    zip_file.save(zip_path) # Save the zip file
+    temp_dir = tempfile.mkdtemp()
+    zip_path = os.path.join(temp_dir, "images.zip")
+    zip_file.save(zip_path)
 
-    embeddings = []
     try:
-        # Extract images
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref: # Open the zip file
-            zip_ref.extractall(temp_dir) # Extract all contents to the temporary directory
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            file_list = zip_ref.namelist()  # List all files in the zip
+            logging.info(f"Files in zip: {file_list}")
 
-        for root, dirs, files in os.walk(temp_dir): # Walk through the extracted files
-            for file in files: # Iterate through each file
-                if file.lower().endswith((".png", ".jpg", ".jpeg")): # Check for image files
-                    img_path = os.path.join(root, file) # Get the full path of the image file
+            # Optional: Return the file list to the client
+            # return jsonify({"success": True, "files": file_list}), 200
+
+            zip_ref.extractall(temp_dir)
+
+        embeddings = []
+        for root, dirs, files in os.walk(temp_dir):
+            for file in files:
+                if file.lower().endswith((".png", ".jpg", ".jpeg")):
+                    img_path = os.path.join(root, file)
                     try:
-                        img = preprocess_image(img_path) 
-                        embedding = embedding_model.predict(img).flatten() # Get the embedding
-                        embeddings.append(embedding) 
+                        img = preprocess_image(img_path)
+                        embedding = embedding_model.predict(img)
+                        if isinstance(embedding, list):
+                            embedding = embedding[0]
+                        embedding = embedding.flatten()
+                        embeddings.append(embedding)
                     except Exception as e:
                         logging.error(f"Failed to process image '{file}': {str(e)}")
 
         if not embeddings:
-            return jsonify({"success": False, "error": "No valid images processed"}), 400 # Bad Request
+            return jsonify({"success": False, "error": "No valid images processed", "files_in_zip": file_list}), 400
 
-        avg_embedding = np.mean(embeddings, axis=0).tolist() # Calculate the average embedding
+        avg_embedding = np.mean(embeddings, axis=0).tolist()
 
         users_collection.update_one(
             {"username": username},
             {"$set": {"userEmbedding": avg_embedding}},
-            upsert=True # Update the user with the average embedding
+            upsert=True
         )
 
-        logging.info(f"User '{username}' registered successfully with average embedding.") 
-        return jsonify({"success": True}), 200 # OK
+        logging.info(f"User '{username}' registered successfully with average embedding.")
+        return jsonify({"success": True, "files_in_zip": file_list}), 200
 
     except Exception as e:
         logging.error(f"Registration failed: {str(e)}")
-        return jsonify({"success": False, "error": "Server error"}), 500 # Internal Server Error
+        return jsonify({"success": False, "error": "Server error"}), 500
 
     finally:
-        # Clean up
         shutil.rmtree(temp_dir, ignore_errors=True)
+
 
 # Login route
 @app.route("/login", methods=["POST"])
