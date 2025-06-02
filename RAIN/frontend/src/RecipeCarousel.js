@@ -1,17 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import './recipeCarousel.css';
 
 export default function RecipeCarousel() {
-  const mockRecipes = [
-    { title: 'Chicken Salad Bowl', calories: 500 },
-    { title: 'Grilled Salmon & Quinoa', calories: 650 },
-    { title: 'Vegetarian Stir Fry', calories: 450 },
-    { title: 'Beef Protein Wraps', calories: 700 },
-    { title: 'Avocado Toast', calories: 400 },
-    { title: 'Pasta Primavera', calories: 550 },
-  ];
+  const [recipes, setRecipes] = useState([]);
 
-  // Funkcija: koliko kartic želimo videti hkrati
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/recipes');
+        const data = await res.json();
+        setRecipes(data);
+      } catch (err) {
+        console.error("Napaka pri pridobivanju receptov:", err);
+      }
+    };
+    fetchRecipes();
+  }, []);
+
   const getVisibleCount = () => {
     const w = window.innerWidth;
     if (w < 768) return 1;
@@ -24,35 +30,23 @@ export default function RecipeCarousel() {
   const [isAnimating, setIsAnimating] = useState(true);
   const timeoutRef = useRef(null);
 
-  // Posodobitev visibleCount ob resize
   useEffect(() => {
-    const handleResize = () => {
-      setVisibleCount(getVisibleCount());
-    };
+    const handleResize = () => setVisibleCount(getVisibleCount());
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Za “infinite loop” razširimo seznam receptov za `visibleCount` na koncu
-  const extendedRecipes = [
-    ...mockRecipes,
-    ...mockRecipes.slice(0, visibleCount),
-  ];
-  const total = mockRecipes.length;
-
-  // Koliko odstotkov znaša ENA karta glede na širino tracka
+  const extendedRecipes = [...recipes, ...recipes.slice(0, visibleCount)];
+  const total = recipes.length;
   const cardWidthPercent = 100 / extendedRecipes.length;
 
-  // Premik na naslednjo karto
   const next = () => {
     setCurrentIndex((prev) => prev + 1);
     setIsAnimating(true);
   };
 
-  // Premik na prejšnjo karto
   const prev = () => {
     if (currentIndex === 0) {
-      // Če smo na prvi, prestavimo index na “duplicate tail” in po animaciji na zadnjo pravo karto
       setCurrentIndex(total);
       setIsAnimating(true);
       setTimeout(() => {
@@ -65,19 +59,16 @@ export default function RecipeCarousel() {
     }
   };
 
-  // Reset timerja
   const resetTimeout = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
 
-  // Avtomatski napredek na 3s
   useEffect(() => {
     resetTimeout();
     timeoutRef.current = setTimeout(next, 3000);
     return () => resetTimeout();
   }, [currentIndex, visibleCount]);
 
-  // Ko pridemo do “duplicate slice” (index == total), reset index na 0 brez animacije
   useEffect(() => {
     if (currentIndex === total) {
       setTimeout(() => {
@@ -87,9 +78,10 @@ export default function RecipeCarousel() {
     }
   }, [currentIndex]);
 
+  if (!recipes.length) return null;
+
   return (
     <div className="carousel-container">
-      {/* Gumb “Nazaj” */}
       <button
         className="carousel-button carousel-button--left"
         onClick={() => {
@@ -101,7 +93,6 @@ export default function RecipeCarousel() {
         ‹
       </button>
 
-      {/* Gumb “Naprej” */}
       <button
         className="carousel-button carousel-button--right"
         onClick={() => {
@@ -113,40 +104,44 @@ export default function RecipeCarousel() {
         ›
       </button>
 
-      {/* TRACK */}
       <div
         className="carousel-track"
         style={{
-          // Širina tracka = (#kartic * 100 / visibleCount)%
           width: `${(extendedRecipes.length * 100) / visibleCount}%`,
-          // Pomik: vsakič premečemo za cardWidthPercent % tracka
           transform: `translateX(-${currentIndex * cardWidthPercent}%)`,
           transition: isAnimating ? 'transform 500ms ease' : 'none',
         }}
       >
         {extendedRecipes.map((recipe, idx) => {
-          // Preverimo, ali je ta karta “center” (za senco/scale)
           const relIdx = idx - currentIndex;
           const isCenter = relIdx === 1;
 
-          return (
-            <div
-              key={idx}
-              className={`carousel-card${
-                isCenter ? ' carousel-card--center' : ''
-              }`}
-              style={{
-                // Vsaka karta = cardWidthPercent % širine tracka
-                flex: `0 0 ${cardWidthPercent}%`,
-                maxWidth: `${cardWidthPercent}%`,
-              }}
-            >
-              <h5 style={{ margin: 0, marginBottom: '0.5rem' }}>
-                {recipe.title}
-              </h5>
-              <p style={{ margin: 0 }}>{recipe.calories} kcal</p>
-            </div>
-          );
+            return (
+                <Link
+                    to={`/recipes/${recipe._id}`}
+                    key={idx}
+                    className={`carousel-card${isCenter ? ' carousel-card--center' : ''}`}
+                    style={{
+                        flex: `0 0 ${cardWidthPercent}%`,
+                        maxWidth: `${cardWidthPercent}%`,
+                        textDecoration: 'none',
+                    }}
+                    >
+                    <div className="carousel-card-content">
+                        <h3 className="recipe-name">{recipe.name}</h3>
+                        {recipe.nutrition ? (
+                        <div style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
+                            <p>Calories: <span>{recipe.nutrition.calories} kcal</span></p>
+                            <p>Fat: <span>{recipe.nutrition.fat} g</span></p>
+                            <p>Carbs: <span>{recipe.nutrition.carbs} g</span></p>
+                            <p>Protein: <span>{recipe.nutrition.protein} g</span></p>
+                        </div>
+                        ) : (
+                        <p>No nutrition info</p>
+                        )}
+                    </div>
+                </Link>
+            );
         })}
       </div>
     </div>

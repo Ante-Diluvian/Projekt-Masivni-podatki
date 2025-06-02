@@ -76,9 +76,23 @@
 }
 
 .carousel-card--center {
-  box-shadow: 0 0 10px rgba(255, 59, 48, 0.8);
+  box-shadow: 0 0 8px rgba(255, 59, 48, 0.7);
   transform: scale(1.0);
   margin-top: 0;
+}
+
+.carousel-card h5 {
+  color: #f8f9fa;
+}
+
+.carousel-card div p {
+  color: #f8f9fa;
+  margin: 0;
+}
+
+.carousel-card div p span {
+  color: #FF3B3F;
+  font-weight: 600;
 }
 
 @media screen and (max-width: 767px) {
