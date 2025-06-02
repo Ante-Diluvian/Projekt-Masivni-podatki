@@ -46,7 +46,7 @@ function Workouts() {
             {workouts.map((workout) => (
               <button
                 key={workout._id.toString()}
-                className="list-group-item list-group-item-action text-white mb-2"
+                className="list-group-item list-group-item-action workout-button text-white mb-2"
                 style={{
                   cursor: 'pointer',
                   backgroundColor: '#2C2C2E',
