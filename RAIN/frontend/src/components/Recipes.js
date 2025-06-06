@@ -3,7 +3,6 @@ import { UserContext } from '../userContext';
 import { Link } from 'react-router-dom';
 
 function Recipes() {
-    const userContext = useContext(UserContext); 
     const [recipes, setRecipes] = useState([]);
 
     useEffect(function(){
@@ -26,6 +25,13 @@ function Recipes() {
         {recipes.map((recipe) => (
           <div key={recipe._id} className="recipe-card">
             <h3 className="recipe-name">{recipe.name}</h3>
+              <div className="recipe-image-container">
+              <img
+                src={`http://localhost:3001/${recipe.imagePath}`}
+                alt={recipe.name}
+                className="recipe-image"
+              />
+              </div>
 
             {recipe.nutrition && (
               <div className="recipe-nutrition">

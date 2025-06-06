@@ -39,30 +39,33 @@ function logEvent(type, userId){
   console.log(line.trim());
 }
 
-function calculateCalories({ weight, durationMins, avgSpeed, metValue }) {
-  let met;
-
-  if (typeof metValue === 'number' && metValue > 0) {
-    //If metValue is valid
-    met = metValue;
-
-    //Fast speed = burn more calories
-    if (avgSpeed >= 10)
-      met *= 1.2;
-    else if (avgSpeed >= 8) 
-      met *= 1.1;
-  } else {
-    //If theres no metValue
-    if (avgSpeed >= 10)
-      met = 10;
-    else if (avgSpeed >= 8)
-      met = 8;
-    else
-      met = 6; //Default (Like walking)
+function calculateBMR({ gender, weight, height, age }) {
+  if (gender === 'male')
+    return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+  else if (gender === 'female')
+    return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+  else {
+    const maleBMR = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    const femaleBMR = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    return (maleBMR + femaleBMR) / 2;
   }
+}
 
+function calculateCalories({ user, durationMins, avgSpeed, metValue }) {
+  const { weight, height, age, gender } = user;
   const durationHours = durationMins / 60;
-  const calories = met * weight * durationHours;
+
+  let met = typeof metValue === 'number' && metValue > 0 ? metValue : 6;
+
+  if (avgSpeed >= 10)
+    met *= 1.2;
+  else if (avgSpeed >= 8)
+    met *= 1.1;
+  else
+    met = met;
+
+  const bmr = calculateBMR({ gender, weight, height, age });
+  const calories = (bmr / 24) * met * durationHours;
 
   return Math.round(calories);
 }
@@ -100,7 +103,7 @@ client.on('message', (topic, messageBuffer) => {
       }
 
       const caloriesBurned = calculateCalories({
-        weight: user1.weight,
+        user: user1,
         durationMins: duration,
         avgSpeed: avgSpeed,
         metValue: metValue
