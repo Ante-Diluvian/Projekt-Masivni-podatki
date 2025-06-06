@@ -314,6 +314,23 @@ body {
   background-color: #FF3B3F;
 }
 
+.recipe-image {
+  width: 100%;
+  height: auto;
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+.recipe-image-within{
+  width: 70%;
+  height: auto;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  display: block;
+  margin-left: auto;  
+  margin-right: auto;
+}
+
 .profile-details {
   text-align: left;
   margin-top: 30px;

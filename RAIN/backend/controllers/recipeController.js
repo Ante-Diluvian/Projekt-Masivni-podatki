@@ -8,7 +8,7 @@ var Recipe = require('../models/recipeModel.js');
 module.exports = {
     createRecipe: function (req, res) {
         try {
-            const { name, nutrition, ingredients, instructions } = req.body;
+            const { name, nutrition, ingredients, instructions, imagePath } = req.body;
 
             //Check if all required fields are present
             const missing = [];
@@ -31,6 +31,7 @@ module.exports = {
                 nutrition,
                 ingredients,
                 instructions,
+                imagePath
             });
 
             //Save
