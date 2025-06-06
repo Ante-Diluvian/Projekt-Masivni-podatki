@@ -51,9 +51,9 @@ function calculateBMR({ gender, weight, height, age }) {
   }
 }
 
-function calculateCalories({ user, durationMins, avgSpeed, metValue }) {
+function calculateCalories({ user, duration, avgSpeed, metValue }) {
   const { weight, height, age, gender } = user;
-  const durationHours = durationMins / 60;
+  const durationHours = duration / 3600;
 
   let met = typeof metValue === 'number' && metValue > 0 ? metValue : 6;
 
@@ -104,7 +104,7 @@ client.on('message', (topic, messageBuffer) => {
 
       const caloriesBurned = calculateCalories({
         user: user1,
-        durationMins: duration,
+        duration: duration,
         avgSpeed: avgSpeed,
         metValue: metValue
       });
