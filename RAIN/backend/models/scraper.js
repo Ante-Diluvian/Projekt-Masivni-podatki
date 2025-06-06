@@ -1,5 +1,61 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const fs = require('fs');
+const path = require('path');
+
+async function downloadImage(url, outputPath) {
+  const response = await axios({
+    url,
+    method: 'GET',
+    responseType: 'stream'
+  });
+
+  return new Promise((resolve, reject) => {
+    const writer = fs.createWriteStream(outputPath);
+    response.data.pipe(writer);
+    writer.on('finish', resolve);
+    writer.on('error', reject);
+  });
+}
+
+async function extractAndDownloadMainImage($, folderPath = 'images') {
+  const footer = $('div.loc.article-footer');
+  const imageElement = footer.find('img.universal-image__image').first();
+  const imageUrl = imageElement.attr('data-src') || imageElement.attr('src');
+
+  if (!imageUrl) return null;
+
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath, { recursive: true });
+  }
+
+  const filename = path.basename(new URL(imageUrl).pathname);
+  const fullPath = path.join(folderPath, filename);
+
+  try {
+    await downloadImage(imageUrl, fullPath);
+    return fullPath;
+  } catch (err) {
+    console.error('Failed to download image:', err.message);
+    return null;
+  }
+}
+
+function extractMainImage($) {
+  let bestImage = null;
+  let maxWidth = 0;
+
+  $('img.universal-image__image').each((i, el) => {
+    const width = parseInt($(el).attr('width'), 10) || 0;
+    const dataSrc = $(el).attr('data-src') || $(el).attr('src');
+    if (width > maxWidth && dataSrc) {
+      maxWidth = width;
+      bestImage = dataSrc;
+    }
+  });
+
+  return bestImage || null;
+}
 
 async function scrapeAllRecipes(url) {
   try {
@@ -69,7 +125,9 @@ async function scrapeAllRecipes(url) {
     }
   });
 
-    return recipe;
+  recipe.imagePath = await extractAndDownloadMainImage($, 'images');
+
+  return recipe;
   } catch (error) {
     console.error('Error scraping the recipe:', error.message);
     return null;
