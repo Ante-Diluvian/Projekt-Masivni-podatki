@@ -15,6 +15,7 @@ var userSchema = new Schema({
 	height: Number,
 	gender: { type: String, enum: ['male', 'female', 'other'] },
 	user_type : Number,
+	user_on_site: Number,
 	userEmbedding: {
 		type: [Number],
 		default: []

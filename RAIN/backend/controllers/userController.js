@@ -60,6 +60,7 @@ module.exports = {
             height : req.body.height,
             gender : req.body.gender,
             user_type: 0,
+            user_on_site: 0,
         });
 
         user.save(function (err, user) {
@@ -80,7 +81,7 @@ module.exports = {
     update: function (req, res) {
         var id = req.params.id;
 
-        UserModel.findOne({_id: id}, function (err, user) {
+        UserModel.findOne({ _id: id }, function (err, user) {
             if (err) {
                 return res.status(500).json({
                     message: 'Error when getting user',
@@ -94,13 +95,17 @@ module.exports = {
                 });
             }
 
-            user.username = req.body.username ? req.body.username : user.username;
-			user.password = req.body.password ? req.body.password : user.password;
-			user.email = req.body.email ? req.body.email : user.email;
-            user.age = req.body.age ? req.body.age : req.body.age;
-            user.weight = req.body.weight ? req.body.weight : req.body.weight;
-            user.height = req.body.height ? req.body.height : req.body.height;
-            user.gender = req.body.gender ? req.body.gender : req.body.gender;
+            if (typeof req.body.username !== 'undefined') user.username = req.body.username;
+            if (typeof req.body.password !== 'undefined') user.password = req.body.password;
+            if (typeof req.body.email !== 'undefined') user.email = req.body.email;
+            if (typeof req.body.age !== 'undefined') user.age = req.body.age;
+            if (typeof req.body.weight !== 'undefined') user.weight = req.body.weight;
+            if (typeof req.body.height !== 'undefined') user.height = req.body.height;
+            if (typeof req.body.gender !== 'undefined') user.gender = req.body.gender;
+            if (typeof req.body.user_type !== 'undefined') user.user_type = req.body.user_type;
+            if (typeof req.body.user_on_site !== 'undefined') user.user_on_site = req.body.user_on_site;
+            if (typeof req.body.userEmbedding !== 'undefined') user.userEmbedding = req.body.userEmbedding;
+
 			
             user.save(function (err, user) {
                 if (err) {
@@ -194,6 +199,10 @@ module.exports = {
             }
             req.session.userId = user._id;
             console.log("User logged in:", user._id);
+            if (user.user_on_site === 1) {
+                console.log("2FA skipped for on-site user:", user._id);
+                return res.json(user);
+            }
             
             mqttHandler.sendMsg(user._id).then(success => {
                 if (success) {
@@ -209,5 +218,29 @@ module.exports = {
             });
 
         });
-    }
+    },
+    register_on_site: function (req, res) {
+        var user = new UserModel({
+			username : req.body.username,
+			password : req.body.password,
+			email : req.body.email,
+            age : req.body.age,
+            weight : req.body.weight,
+            height : req.body.height,
+            gender : req.body.gender,
+            user_type: 0,
+            user_on_site: 1,
+        });
+
+        user.save(function (err, user) {
+            if (err) {
+                return res.status(500).json({
+                    message: 'Error when creating user',
+                    error: err
+                });
+            }
+
+            return res.status(201).json(user);
+        });
+    },
 };

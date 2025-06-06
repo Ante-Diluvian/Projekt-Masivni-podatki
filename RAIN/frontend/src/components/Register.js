@@ -23,7 +23,7 @@ function Register() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/users", {
+      const res = await fetch("http://localhost:3001/users/registeSite", {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

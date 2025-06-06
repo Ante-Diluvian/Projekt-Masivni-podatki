@@ -11,8 +11,6 @@ const Capture = ({ username, onDone }) => {
   const cameraRef = useRef(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [capturedCount, setCapturedCount] = useState(0);
-  // No longer need 'frames' state as it will be passed directly
-  // const [frames, setFrames] = useState([]);
   const [permission, requestPermission] = useCameraPermissions();
   const CAPTURE_LIMIT = 50;
   const INTERVAL_MS = 200;
