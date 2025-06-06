@@ -19,9 +19,9 @@ export const Window2FA = ({ user, onClose, onUserUpdate}) => {
     try {
       console.log("Updating user ID:", user._id);
       await api.put(`/users/${user._id}`, {
-        user_on_site: 0,
+          twoFactor: { web: true, mobile: false }
       });
-      const updatedUser = { ...user, user_on_site: 0 };
+      const updatedUser = { ...user,   twoFactor: { web: true, mobile: false } };
       await AsyncStorage.setItem('token', JSON.stringify(updatedUser)); 
       onUserUpdate(updatedUser);
 

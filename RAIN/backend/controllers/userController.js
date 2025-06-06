@@ -60,7 +60,7 @@ module.exports = {
             height : req.body.height,
             gender : req.body.gender,
             user_type: 0,
-            user_on_site: 0,
+            twoFactor: { web: true, mobile: false },
         });
 
         user.save(function (err, user) {
@@ -95,17 +95,7 @@ module.exports = {
                 });
             }
 
-            if (typeof req.body.username !== 'undefined') user.username = req.body.username;
-            if (typeof req.body.password !== 'undefined') user.password = req.body.password;
-            if (typeof req.body.email !== 'undefined') user.email = req.body.email;
-            if (typeof req.body.age !== 'undefined') user.age = req.body.age;
-            if (typeof req.body.weight !== 'undefined') user.weight = req.body.weight;
-            if (typeof req.body.height !== 'undefined') user.height = req.body.height;
-            if (typeof req.body.gender !== 'undefined') user.gender = req.body.gender;
-            if (typeof req.body.user_type !== 'undefined') user.user_type = req.body.user_type;
-            if (typeof req.body.user_on_site !== 'undefined') user.user_on_site = req.body.user_on_site;
-            if (typeof req.body.userEmbedding !== 'undefined') user.userEmbedding = req.body.userEmbedding;
-
+            if (typeof req.body.twoFactor !== 'undefined') user.twoFactor = req.body.twoFactor;
 			
             user.save(function (err, user) {
                 if (err) {
@@ -199,7 +189,7 @@ module.exports = {
             }
             req.session.userId = user._id;
             console.log("User logged in:", user._id);
-            if (user.user_on_site === 1) {
+            if (!user.twoFactor || user.twoFactor.web === false) {
                 console.log("2FA skipped for on-site user:", user._id);
                 return res.json(user);
             }
@@ -229,7 +219,7 @@ module.exports = {
             height : req.body.height,
             gender : req.body.gender,
             user_type: 0,
-            user_on_site: 1,
+            twoFactor: { web: false, mobile: false },
         });
 
         user.save(function (err, user) {

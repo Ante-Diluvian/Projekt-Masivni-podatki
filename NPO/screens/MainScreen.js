@@ -42,10 +42,10 @@ const MainScreen = ({ navigation }) => {
           </TouchableOpacity>
 
            <TouchableOpacity onPress={() => {
-             if (user?.user_on_site === 1) {
+             if (!user?.twoFactor?.web) {
                setShow2FA(true);
              }
-             }} style={[ styles.bellWrapper, user?.user_on_site === 1 && styles.bellWrapperRed ]}>
+             }} style={[ styles.bellWrapper, !user.twoFactor?.web && styles.bellWrapperRed ]}>
               <Ionicons name="notifications-outline" size={22} color="#fff" />
             </TouchableOpacity>
         </View>

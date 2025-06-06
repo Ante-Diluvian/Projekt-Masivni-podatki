@@ -15,7 +15,10 @@ var userSchema = new Schema({
 	height: Number,
 	gender: { type: String, enum: ['male', 'female', 'other'] },
 	user_type : Number,
-	user_on_site: Number,
+	twoFactor: {
+		web: { type: Boolean, default: false },
+		mobile: { type: Boolean, default: false },
+	},
 	userEmbedding: {
 		type: [Number],
 		default: []
@@ -24,6 +27,9 @@ var userSchema = new Schema({
 
 userSchema.pre('save', function(next){
 	var user = this;
+
+	if (!user.isModified('password')) return next();
+
 	bcrypt.hash(user.password, 10, function(err, hash){
 		if(err){
 			return next(err);
