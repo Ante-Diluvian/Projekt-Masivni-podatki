@@ -79,7 +79,7 @@ function MainScreen() {
                 onClick={() => setActiveTab('summary')}
                 style={{ cursor: 'pointer' }}
               >
-                Weekly Summary
+                Calorie Summary
               </button>
             </li>
           </ul>
