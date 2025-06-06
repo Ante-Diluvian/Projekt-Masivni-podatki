@@ -35,10 +35,10 @@ function Recipes() {
 
             {recipe.nutrition && (
               <div className="recipe-nutrition">
-                <p>Calories: <span>{recipe.nutrition.calories}</span></p>
-                <p>Fat: <span>{recipe.nutrition.fat}g</span></p>
-                <p>Carbs: <span>{recipe.nutrition.carbs}g</span></p>
-                <p>Protein: <span>{recipe.nutrition.protein}g</span></p>
+                <p>Calories: <span>{recipe.nutrition.calories} kcal</span></p>
+                <p>Fat: <span>{recipe.nutrition.fat}</span></p>
+                <p>Carbs: <span>{recipe.nutrition.carbs}</span></p>
+                <p>Protein: <span>{recipe.nutrition.protein}</span></p>
               </div>
             )}
 
