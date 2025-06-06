@@ -91,5 +91,15 @@ module.exports = {
 
             return res.status(204).send();
         });
+    },
+
+    getNames: async function (req, res) {
+        try {
+            const names = await ExerciseModel.distinct('name');
+            res.json(names);
+        } catch (err) {
+            console.error('Error in getNames:', err);
+            res.status(500).json({ message: err.message });
+        }
     }
 }
