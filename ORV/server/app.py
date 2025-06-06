@@ -4,8 +4,6 @@ import uuid
 import logging
 from pymongo import MongoClient
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.preprocessing import image
 from werkzeug.utils import secure_filename
 import zipfile
 import tempfile
@@ -14,6 +12,9 @@ import shutil
 # Only CPU
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
+import tensorflow as tf
+from tensorflow.keras.preprocessing import image
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -135,7 +136,7 @@ def login():
             return jsonify({"success": False, "error": "Failed to process image"}), 500 # Internal Server Error
 
         similarity = cosine_similarity(np.array(user["userEmbedding"]), new_embedding) # Calculate cosine similarity
-        is_match = bool(similarity > 0.7) # Define a threshold for matching
+        is_match = bool(similarity > 0.6) # Define a threshold for matching
 
         logging.info(f"Login attempt for '{username}': similarity = {similarity:.4f}, match = {is_match}")
         return jsonify({"success": is_match, "similarity": float(similarity)}), 200 # OK
