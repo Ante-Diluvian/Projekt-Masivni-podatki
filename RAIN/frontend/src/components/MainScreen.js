@@ -49,13 +49,8 @@ function MainScreen() {
   if (error) return <div className="alert alert-danger">Error: {error}</div>;
 
   return (
-    <div className="container pt-3 mt-5 mb-2.6">
-      <div className="mb-5">
-        <h4 className="text-center mb-4 login-title">Suggested Recipes for This Week</h4>
-        <RecipeCarousel calories={totalCaloriesWeek} />
-      </div>
-
-      <div className="card text-white shadow-sm" style={{ backgroundColor: '#2C2C2E', borderRadius: '0.5rem' }}>
+    <div className="container pt-4 mt-5 mb-2.6">
+      <div className="card text-white shadow-sm mb-4" style={{ backgroundColor: '#2C2C2E', borderRadius: '0.5rem' }}>
         <div className="card-body" style={{ boxShadow: '0 0 20px rgba(0,0,0,0.5)', borderRadius: '0.5rem' }}>
           <h5 className="card-title text-center login-title">Your Weekly Overview</h5>
 
@@ -95,6 +90,11 @@ function MainScreen() {
             {activeTab === 'summary' && <WorkoutChart workouts={workouts} />}
           </div>
         </div>
+      </div>
+
+      <div className="mb-3">
+        <h4 className="text-center mb-2 login-title">Suggested Recipes for This Week</h4>
+        <RecipeCarousel calories={totalCaloriesWeek} />
       </div>
     </div>
   );
