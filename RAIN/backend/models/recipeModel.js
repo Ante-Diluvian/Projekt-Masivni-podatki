@@ -21,6 +21,12 @@ const RecipeSchema = new mongoose.Schema({
   },
   instructions: [{ type: String, required: true }],
   imagePath: { type: String, required: false },
+  details: {
+    prepTime: { type: String, required: false },
+    cookTime: { type: String, required: false },
+    totalTime: { type: String, required: false },
+    servings: { type: String, required: false }
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Recipe', RecipeSchema);

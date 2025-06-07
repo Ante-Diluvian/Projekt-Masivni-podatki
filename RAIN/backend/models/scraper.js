@@ -127,6 +127,21 @@ async function scrapeAllRecipes(url) {
 
   recipe.imagePath = await extractAndDownloadMainImage($, 'images');
 
+  const details = {};
+  const detailItems = $('.comp.mm-recipes-details .mm-recipes-details__item');
+
+  const detailLabels = ['prepTime', 'cookTime', 'totalTime', 'servings'];
+
+  detailItems.each((i, el) => {
+    const value = $(el).find('.mm-recipes-details__value').text().trim();
+    if (value && i < detailLabels.length) {
+      details[detailLabels[i]] = value;
+    }
+  });
+
+  recipe.details = details;
+
+
   return recipe;
   } catch (error) {
     console.error('Error scraping the recipe:', error.message);
