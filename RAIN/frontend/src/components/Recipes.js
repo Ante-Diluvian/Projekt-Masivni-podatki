@@ -7,7 +7,7 @@ function Recipes() {
 
     useEffect(function(){
         const getRecipes = async function(){
-            const res = await fetch("http://localhost:3001/recipes");
+            const res = await fetch("http://194.163.176.154:3001/recipes");
             const data = await res.json();
             setRecipes(data);
         }
@@ -27,7 +27,7 @@ function Recipes() {
             <h3 className="recipe-name">{recipe.name}</h3>
               <div className="recipe-image-container">
               <img
-                src={`http://localhost:3001/${recipe.imagePath}`}
+                src={`http://194.163.176.154:3001/${recipe.imagePath}`}
                 alt={recipe.name}
                 className="recipe-image"
               />

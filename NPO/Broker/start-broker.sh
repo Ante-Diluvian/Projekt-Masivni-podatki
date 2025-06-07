@@ -8,25 +8,10 @@ ACL_FILE="$CONFIG_DIR/acl"
 USERNAME="app_guest"
 PASSWORD="fentanyl"
 
-# 0. Fix permissions on the config directory
-echo "🔐 Fixing permissions... part 1"
-sudo chown root:root ./config/acl
-sudo chmod 0600 ./config/acl
-sudo chown root:root ./config/passwd
-sudo chmod 0600 ./config/passwd
+# Ensure config directory exists
+mkdir -p "$CONFIG_DIR"
 
-echo "🔧 Starting Mosquitto broker with Docker Compose..."
-docker-compose up -d
-
-sleep 2
-# 1a. Fix permissions on the passwd file (again)
-echo "🔐 Fixing permissions... part 2"
-docker exec mosquitto chown root:root /mosquitto/config/passwd || true
-docker exec mosquitto chmod 0600 /mosquitto/config/passwd || true
-docker exec mosquitto chown root:root /mosquitto/config/acl || true
-docker exec mosquitto chmod 0600 /mosquitto/config/acl || true
-
-# 1c. Create the password file
+# 1. Create the password file if it doesn't exist, or add user if needed
 if [ ! -f "$PASSWD_FILE" ]; then
   echo "🆕 Creating password file and adding user '$USERNAME'..."
   docker run --rm -v "$(pwd)/config:/mosquitto/config" eclipse-mosquitto \
@@ -41,9 +26,7 @@ else
   fi
 fi
 
-
-
-# 2. Create the ACL file
+# 2. Create the ACL file if it doesn't exist
 if [ ! -f "$ACL_FILE" ]; then
   echo "🆕 Creating new ACL file..."
   cat <<EOF > "$ACL_FILE"
@@ -66,10 +49,30 @@ else
   echo "✅ ACL file already exists."
 fi
 
-# 3. Get the public IP address
+# 3. Fix permissions on the config files (after creation)
+echo "🔐 Fixing permissions..."
+sudo chown root:root "$ACL_FILE"
+sudo chmod 0600 "$ACL_FILE"
+sudo chown root:root "$PASSWD_FILE"
+sudo chmod 0600 "$PASSWD_FILE"
+
+# 4. Start Mosquitto broker with Docker Compose
+echo "🔧 Starting Mosquitto broker with Docker Compose..."
+docker-compose up -d
+
+sleep 2
+
+# 5. Fix permissions inside the container (in case files are mounted)
+echo "🔐 Fixing permissions inside container..."
+docker exec mosquitto chown root:root /mosquitto/config/passwd || true
+docker exec mosquitto chmod 0600 /mosquitto/config/passwd || true
+docker exec mosquitto chown root:root /mosquitto/config/acl || true
+docker exec mosquitto chmod 0600 /mosquitto/config/acl || true
+
+# 6. Get the public IP address
 PUBLIC_IP=$(curl -s ifconfig.me || echo "unknown")
 
-# 4. Display information
+# 7. Display information
 echo ""
 echo "📡 Mosquitto broker is running."
 echo "📍 Local container IP address:"

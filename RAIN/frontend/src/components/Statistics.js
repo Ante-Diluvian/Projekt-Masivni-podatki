@@ -35,7 +35,7 @@ function Workouts() {
   useEffect(() => {
     const fetchExerciseNames = async () => {
       try {
-        const res = await fetch('http://localhost:3001/exercises/names');
+        const res = await fetch('http://194.163.176.154:3001/exercises/names');
         const data = await res.json();
         setAvailableTypes([...new Set(data.map(name => name.split(' ')[0]))]);
       } catch (err) {
@@ -51,7 +51,7 @@ function Workouts() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`http://localhost:3001/workouts/workouts/${user._id}`);
+        const res = await fetch(`http://194.163.176.154:3001/workouts/workouts/${user._id}`);
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         const data = await res.json();
         setWorkouts(Array.isArray(data) ? data : []);

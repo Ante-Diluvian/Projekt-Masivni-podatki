@@ -19,7 +19,7 @@ var workoutRoutes = require('./routes/workoutRoutes');
 
 var app = express();
 
-var allowedOrigins = ['http://localhost:3000', 'http://localhost:3001'];
+var allowedOrigins = ['http://194.163.176.154:3000', 'http://194.163.176.154:3001'];
 app.use(cors({
   credentials: true,
   origin: function(origin, callback){
@@ -35,7 +35,7 @@ require('dotenv').config();
 
 //CORS
 var cors = require('cors');
-var allowedOrigins = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8081', 'http://192.168.68.107:3001','http://192.168.1.128:3001', 'exp://127.0.0.1:19000', 'exp://192.168.68.107:8081' , 'http://localhost:19006'];
+var allowedOrigins = ['http://194.163.176.154:3000', 'http://194.163.176.154:3001', 'http://194.163.176.154:8081', 'http://192.168.68.107:3001','http://192.168.1.128:3001', 'exp://127.0.0.1:19000', 'exp://192.168.68.107:8081' , 'http://194.163.176.154:19006'];
 app.use(cors({
   credentials: true,
   origin: function (origin, callback) {
@@ -121,7 +121,7 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
-  console.log(`Aplikacija teče na http://localhost:${port}`);
+  console.log(`Aplikacija teče na http://194.163.176.154:${port}`);
 });
 
 require('./controllers/mqttHandler');

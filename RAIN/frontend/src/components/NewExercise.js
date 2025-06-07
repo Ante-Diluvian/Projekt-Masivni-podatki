@@ -20,7 +20,7 @@ function NewExercise() {
     formData.append('image', imagePath);
     formData.append('category', category);
 
-    const res = await fetch('http://localhost:3001/exercises', {
+    const res = await fetch('http://194.163.176.154:3001/exercises', {
       method: 'POST',
       credentials: 'include',
       body: formData

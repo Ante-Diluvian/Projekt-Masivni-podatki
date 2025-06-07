@@ -21,7 +21,7 @@ function AdminPanel() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:3001/users', {
+      const res = await fetch('http://194.163.176.154:3001/users', {
         credentials: 'include'
       });
       const data = await res.json();
@@ -40,7 +40,7 @@ function AdminPanel() {
   const fetchExercises = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:3001/exercises', {
+      const res = await fetch('http://194.163.176.154:3001/exercises', {
         credentials: 'include'
       });
       const data = await res.json();
@@ -59,7 +59,7 @@ function AdminPanel() {
   const deleteExercises = async (id) =>{
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:3001/exercises/${id}`, {
+      const res = await fetch(`http://194.163.176.154:3001/exercises/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -79,7 +79,7 @@ function AdminPanel() {
   const deleteUser = async (id) =>{
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:3001/users/${id}`, {
+      const res = await fetch(`http://194.163.176.154:3001/users/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });

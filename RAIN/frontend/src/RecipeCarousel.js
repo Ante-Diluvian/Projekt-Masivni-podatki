@@ -9,8 +9,8 @@ export default function RecipeCarousel({ calories }) {
     const fetchRecipes = async () => {
       try {
         const url = calories 
-          ? `http://localhost:3001/recipes/suggested?maxCalories=${calories}`
-          : 'http://localhost:3001/recipes/suggested';
+          ? `http://194.163.176.154:3001/recipes/suggested?maxCalories=${calories}`
+          : 'http://194.163.176.154:3001/recipes/suggested';
         const res = await fetch(url);
         const data = await res.json();
         setRecipes(data);
@@ -132,7 +132,7 @@ const prev = () => {
                         flex: `0 0 ${cardWidthPercent}%`,
                         maxWidth: `${cardWidthPercent}%`,
                         textDecoration: 'none',
-                        backgroundImage: `url(${`http://localhost:3001/${recipe.imagePath.replace(/\\/g, '/')}`})`,
+                        backgroundImage: `url(${`http://194.163.176.154:3001/${recipe.imagePath.replace(/\\/g, '/')}`})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat',

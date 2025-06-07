@@ -26,7 +26,7 @@ function Login() {
     setCountdown(30); 
 
     try {
-      const res = await fetch("http://localhost:3001/users/login2fa", {
+      const res = await fetch("http://194.163.176.154:3001/users/login2fa", {
         method: "POST",
         credentials: "include",
         headers: { 'Content-Type': 'application/json' },

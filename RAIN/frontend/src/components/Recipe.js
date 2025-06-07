@@ -18,7 +18,7 @@ function Recipe() {
   useEffect(() => {
     const getRecipe = async () => {
       try {
-        const res = await fetch("http://localhost:3001/recipes/" + id);
+        const res = await fetch("http://194.163.176.154:3001/recipes/" + id);
         const data = await res.json();
         setRecipe(data);
       } catch (err) {
@@ -38,7 +38,7 @@ function Recipe() {
       {recipe.imagePath && (
         <div className="recipe-image-within">
           <img
-            src={`http://localhost:3001/${recipe.imagePath}`}
+            src={`http://194.163.176.154:3001/${recipe.imagePath}`}
             alt={recipe.name}
             className="recipe-image"
           />

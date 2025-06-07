@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from 'react';localhost
 
 function Register() {
   const [username, setUsername] = useState([]);
@@ -23,7 +23,7 @@ function Register() {
     }
 
     try {
-      const res = await fetch("http://localhost:3001/users/registeSite", {
+      const res = await fetch("http://194.163.176.154:3001/users/registeSite", {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
