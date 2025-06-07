@@ -46,19 +46,19 @@ function Recipe() {
             <div className="recipe-details">
                 <div className="recipe-detail-item">
                     <PiCarrot className="recipe-icon" />
-                    <span className="recipe-detail-text">Prep Time: {recipe.preptime || "15 min"}</span>
+                    <span className="recipe-detail-text">Prep Time: {recipe.details?.prepTime || "15 min"}</span>
                 </div>
                 <div className="recipe-detail-item">
                     <PiCookingPot className="recipe-icon" />
-                    <span className="recipe-detail-text">Cooking Time: {recipe.preptime || "30 min"}</span>
+                    <span className="recipe-detail-text">Cooking Time: {recipe.details?.cookTime || "30 min"}</span>
                 </div>
                 <div className="recipe-detail-item">
                     <MdAccessTime className="recipe-icon" />
-                    <span className="recipe-detail-text">Total Time: {recipe.fulltime || "45 min"}</span>
+                    <span className="recipe-detail-text">Total Time: {recipe.details?.totalTime || "45 min"}</span>
                 </div>
                 <div className="recipe-detail-item">
                     <MdRestaurant className="recipe-icon" />
-                    <span className="recipe-detail-text">Servings: {recipe.servings || "4"}</span>
+                    <span className="recipe-detail-text">Servings: {recipe.details?.servings || "4"}</span>
                 </div>
             </div>
         </div>
