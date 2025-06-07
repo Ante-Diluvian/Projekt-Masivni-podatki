@@ -45,26 +45,33 @@ def linearize_img(img):
 def rotate_img(img, angle):
     radian = math.radians(angle)
     rotated_img = np.zeros(img.shape, dtype=np.uint8)
-    height, width = img.shape
+    height, width, channels = img.shape
 
     x = width // 2
     y = height // 2
-    for i in range(height):
-        for j in range(width):
-            x1 = (j - x) * math.cos(radian) - (i - y) * math.sin(radian)
-            y1 = (j - x) * math.sin(radian) + (i - y) * math.cos(radian)
+    for c in range(channels):
+        for i in range(height):
+            for j in range(width):
+                x1 = (j - x) * math.cos(radian) - (i - y) * math.sin(radian)
+                y1 = (j - x) * math.sin(radian) + (i - y) * math.cos(radian)
 
-            x1 = round(x1 + x)
-            y1 = round(y1 + y)
+                x1 = round(x1 + x)
+                y1 = round(y1 + y)
 
-            if 0 <= x1 < width and 0 <= y1 < height:
-                rotated_img[i, j] = img[y1, x1]
+                if 0 <= x1 < width and 0 <= y1 < height:
+                    rotated_img[i, j, c] = img[y1, x1, c]
 
+    if channels == 1:
+        return rotated_img[:, :, 0]
     return rotated_img
     pass
 
 def change_brightness(img, factor):
-    brightness_image = img.astype(np.float32) + factor
+    if len(img.shape) == 3:
+        brightness_image = img.astype(np.float32) + factor
+    else:
+        brightness_image = img.astype(np.float32)[:, :, np.newaxis] + factor
+
     brightness_image = np.clip(brightness_image, 0, 255)
     return brightness_image.astype(np.uint8)
     pass
@@ -107,8 +114,8 @@ if __name__ == "__main__":
     slika = filter_with_gausso_core(slika,2)
     slika = linearize_img(slika)
 
-   #rot_slika = rotate_img(slika,45)
-   #svetlost_slike = change_brightness(slika,100)
+    rot_slika = rotate_img(slika,-45)
+    svetlost_slike = change_brightness(slika,-100)
    #zrcali_sliko = mirror_img(slika)
    #slika1 = move_img(slika,50,-50)
 
@@ -117,8 +124,8 @@ if __name__ == "__main__":
     else:
         while True:  
             cv.imshow('Slika', slika)
-           #cv.imshow('Rot Slika', rot_slika)
-           #cv.imshow('Svetla slika', svetlost_slike)
+            cv.imshow('Rot Slika', rot_slika)
+            cv.imshow('Svetla slika', svetlost_slike)
            #cv.imshow("zrcali", zrcali_sliko)
            #cv.imshow("move image", slika1)
             if cv.waitKey(1) & 0xFF == ord('q'):
