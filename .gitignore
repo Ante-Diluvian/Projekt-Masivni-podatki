@@ -1,6 +1,11 @@
 dataset/
+*.jpg
+logs/
+made/
 
 myenv/
+myenv_new/
+node_modules
 
 __pycache__/
 *.pyc
