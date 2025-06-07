@@ -77,29 +77,30 @@ def change_brightness(img, factor):
     pass
 
 def mirror_img(img):
-    height,width = img.shape
+    height, width, channels = img.shape
     copy_img = img.copy()
 
-    for i in range(height):
-       for j in range(width):
-           copy_img[i,width - j - 1] = img[i,j]
+    for c in range(channels):
+        for i in range(height):
+            for j in range(width):
+                copy_img[i, width - j - 1, c] = img[i, j, c]
 
     return copy_img
     pass
 
 def move_img(img, x, y):
-    height,width = img.shape
+    height, width, channels = img.shape
     move = np.zeros_like(img)
-    for i in range(height):
-        for j in range(width):
-            new_i = i - y
-            new_j = j - x
-
-            if 0 <= new_i < height and 0 <= new_j < width:
-                move[i, j] = img[new_i, new_j]
+        
+    for c in range(channels):
+        for i in range(height):
+            for j in range(width):
+                new_i = i - y
+                new_j = j - x
+                if 0 <= new_i < height and 0 <= new_j < width:
+                    move[i, j, c] = img[new_i, new_j, c]
 
     return move
-
     pass
 #endregion
 
@@ -116,8 +117,8 @@ if __name__ == "__main__":
 
     rot_slika = rotate_img(slika,-45)
     svetlost_slike = change_brightness(slika,-100)
-   #zrcali_sliko = mirror_img(slika)
-   #slika1 = move_img(slika,50,-50)
+    zrcali_sliko = mirror_img(slika)
+    slika1 = move_img(slika,50,-50)
 
     if slika is None:
         print("Napaka: Slika ni bila naloÅ¾ena. Preveri pot do slike.")
@@ -126,8 +127,8 @@ if __name__ == "__main__":
             cv.imshow('Slika', slika)
             cv.imshow('Rot Slika', rot_slika)
             cv.imshow('Svetla slika', svetlost_slike)
-           #cv.imshow("zrcali", zrcali_sliko)
-           #cv.imshow("move image", slika1)
+            cv.imshow("zrcali", zrcali_sliko)
+            cv.imshow("move image", slika1)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
 
