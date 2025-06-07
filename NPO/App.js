@@ -180,7 +180,7 @@ export default function App() {
 
   useEffect(() => {
     getData();
-  }, []);
+  }, [isAuthenticated]);
 
   if (isLoading)
     return null;

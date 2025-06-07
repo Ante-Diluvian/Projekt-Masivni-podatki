@@ -6,11 +6,14 @@ let userId = null;
 
 export const login = async (username, password) => {
   try {
+    if (userId) {
+      await logoutMqttClient(userId);
+    }
+
     const response = await api.post('/users/login', { username, password });
     await AsyncStorage.setItem('token', JSON.stringify(response.data));
     await AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
-    userId = response.data._id;
-    initMqttClient(userId);
+
     return response.data;
   } catch (error) {
     console.error('Login error:', error.response?.data || error.message);
@@ -30,10 +33,15 @@ export const register = async ({ username, password, email, age, weight, height,
 
 export const logout = async () => {
   try {
+    const data = await AsyncStorage.getItem('token');
+    const currentUserId = data ? JSON.parse(data)._id : userId;
+    logoutMqttClient(currentUserId); 
+
     await api.get('/users/logout');
     await AsyncStorage.setItem('token', '');
     await AsyncStorage.setItem('isLoggedIn', '');
-    logoutMqttClient(userId);
+
+    userId = null;
   } catch (error) {
     console.error('Logout error:', error.response?.data || error.message);
     throw error;

@@ -154,20 +154,44 @@ const Capture = ({ username, onDone }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  camera: { flex: 1 },
-  button: {
-    backgroundColor: '#1e90ff',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    margin: 10,
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
   },
-  buttonDisabled: { backgroundColor: '#555' },
-  buttonText: { color: 'white', fontWeight: 'bold' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { color: 'red' },
+  camera: {
+    flex: 1,
+  },
+  button: {
+    position: 'absolute',
+    bottom: 40,
+    alignSelf: 'center',
+    backgroundColor: '#1e90ff',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    zIndex: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#555',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+  },
 });
+
 
 export default Capture;

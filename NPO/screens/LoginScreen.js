@@ -19,6 +19,11 @@ const LoginScreen = ({ navigation, onLogin }) => {
 
       try {
         const data = await login(username, password);
+
+        const token = await AsyncStorage.getItem('token');
+        const parsed = JSON.parse(token);
+        console.log("User just logged in:", parsed._id);
+
         onLogin();
       } catch (error) {
         console.error('Login Error Details:', error);
