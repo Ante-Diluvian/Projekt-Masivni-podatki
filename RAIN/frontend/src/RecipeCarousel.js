@@ -2,13 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import './recipeCarousel.css';
 
-export default function RecipeCarousel() {
+export default function RecipeCarousel({ calories }) {
   const [recipes, setRecipes] = useState([]);
 
   useEffect(() => {
     const fetchRecipes = async () => {
       try {
-        const res = await fetch('http://localhost:3001/recipes');
+        const url = calories 
+          ? `http://localhost:3001/recipes/suggested?maxCalories=${calories}`
+          : 'http://localhost:3001/recipes/suggested';
+        const res = await fetch(url);
         const data = await res.json();
         setRecipes(data);
       } catch (err) {
@@ -129,21 +132,22 @@ const prev = () => {
                         flex: `0 0 ${cardWidthPercent}%`,
                         maxWidth: `${cardWidthPercent}%`,
                         textDecoration: 'none',
+                        backgroundImage: `url(${`http://localhost:3001/${recipe.imagePath.replace(/\\/g, '/')}`})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        color: 'white',
+                        position: 'relative',
                     }}
                     >
-                    <div className="carousel-card-content">
-                        <h3 className="recipe-name">{recipe.name}</h3>
-                        {recipe.nutrition ? (
-                        <div style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
-                            <p>Calories: <span>{recipe.nutrition.calories} kcal</span></p>
-                            <p>Fat: <span>{recipe.nutrition.fat} g</span></p>
-                            <p>Carbs: <span>{recipe.nutrition.carbs} g</span></p>
-                            <p>Protein: <span>{recipe.nutrition.protein} g</span></p>
-                        </div>
-                        ) : (
-                        <p>No nutrition info</p>
-                        )}
-                    </div>
+                  <div className="carousel-overlay">
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold' }}>{recipe.name}</h3>
+                    {recipe.nutrition && (
+                      <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                        Calories: <span>{recipe.nutrition.calories} kcal</span>
+                      </p>
+                    )}
+                  </div>
                 </Link>
             );
         })}
