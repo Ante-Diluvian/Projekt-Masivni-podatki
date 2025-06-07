@@ -11,6 +11,8 @@ router.get('/', exerciseController.list);
 
 router.get('/create', exerciseController.showCreate);
 
+router.get('/names', exerciseController.getNames);
+
 //POST Create new exercise
 router.post('/', upload.single('image'), exerciseController.create);
 

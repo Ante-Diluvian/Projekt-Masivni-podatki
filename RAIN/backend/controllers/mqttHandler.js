@@ -39,30 +39,33 @@ function logEvent(type, userId){
   console.log(line.trim());
 }
 
-function calculateCalories({ weight, durationMins, avgSpeed, metValue }) {
-  let met;
-
-  if (typeof metValue === 'number' && metValue > 0) {
-    //If metValue is valid
-    met = metValue;
-
-    //Fast speed = burn more calories
-    if (avgSpeed >= 10)
-      met *= 1.2;
-    else if (avgSpeed >= 8) 
-      met *= 1.1;
-  } else {
-    //If theres no metValue
-    if (avgSpeed >= 10)
-      met = 10;
-    else if (avgSpeed >= 8)
-      met = 8;
-    else
-      met = 6; //Default (Like walking)
+function calculateBMR({ gender, weight, height, age }) {
+  if (gender === 'male')
+    return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+  else if (gender === 'female')
+    return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+  else {
+    const maleBMR = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    const femaleBMR = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    return (maleBMR + femaleBMR) / 2;
   }
+}
 
-  const durationHours = durationMins / 60;
-  const calories = met * weight * durationHours;
+function calculateCalories({ user, duration, avgSpeed, metValue }) {
+  const { weight, height, age, gender } = user;
+  const durationHours = duration / 3600;
+
+  let met = typeof metValue === 'number' && metValue > 0 ? metValue : 6;
+
+  if (avgSpeed >= 10)
+    met *= 1.2;
+  else if (avgSpeed >= 8)
+    met *= 1.1;
+  else
+    met = met;
+
+  const bmr = calculateBMR({ gender, weight, height, age });
+  const calories = (bmr / 24) * met * durationHours;
 
   return Math.round(calories);
 }
@@ -84,7 +87,7 @@ client.on('message', (topic, messageBuffer) => {
   if (topic === "app/workout") {
     try {
       const message = JSON.parse(messageBuffer.toString());
-      const { exercise, user1, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue } = message;
+      const { exerciseName, user1, avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue } = message;
       console.log('Received exercise data:', message);
 
       const gps = new Gps({latitude: [latitude].flat(), longitude: [longitude].flat(), altitude: [altitude].flat()});
@@ -100,15 +103,15 @@ client.on('message', (topic, messageBuffer) => {
       }
 
       const caloriesBurned = calculateCalories({
-        weight: user1.weight,
-        durationMins: duration,
+        user: user1,
+        duration: duration,
         avgSpeed: avgSpeed,
         metValue: metValue
       });
 
       const workoutData = {
-        name: exercise || "Workout", 
-        user_id: user1,
+        name: exerciseName || "Workout", 
+        user_id: user1._id,
         startTimestamp: new Date(startTime),
         endTimestamp: new Date(endTime),
         duration: duration,

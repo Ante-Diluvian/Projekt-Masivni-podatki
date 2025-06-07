@@ -8,7 +8,7 @@ var Recipe = require('../models/recipeModel.js');
 module.exports = {
     createRecipe: function (req, res) {
         try {
-            const { name, nutrition, ingredients, instructions } = req.body;
+            const { name, nutrition, ingredients, instructions, imagePath, details } = req.body;
 
             //Check if all required fields are present
             const missing = [];
@@ -31,6 +31,8 @@ module.exports = {
                 nutrition,
                 ingredients,
                 instructions,
+                imagePath,
+                details
             });
 
             //Save
@@ -55,6 +57,34 @@ module.exports = {
         } catch (err) {
             console.error('Error fetching recipes:', err);
             res.status(500).json({ error: 'Internal server error', details: err.message });
+        }
+    },
+
+    getSuggestedRecipes: async function (req, res) {
+        try {
+            const maxCalories = req.query.maxCalories ? parseInt(req.query.maxCalories, 10) : null;
+
+            const allRecipes = await Recipe.find().limit(50);
+
+            if (maxCalories === null || isNaN(maxCalories))
+                return res.json(allRecipes);
+
+            const extractCalories = (calStr) => {
+                if (!calStr) 
+                    return 0;
+                
+                const match = calStr.match(/\d+/);
+                return match ? parseInt(match[0], 10) : 0;
+            };
+
+            const filteredRecipes = allRecipes.filter(recipe => {
+                const cals = extractCalories(recipe.nutrition?.calories);
+                return cals <= maxCalories;
+            });
+
+            res.json(filteredRecipes);
+        } catch (err) {
+            res.status(500).json({ error: err.message });
         }
     },
 

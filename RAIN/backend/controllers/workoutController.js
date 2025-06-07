@@ -119,6 +119,23 @@ module.exports = {
             return res.status(204).json();
         });
     },
+
+    listByUser: function (req, res) {
+        const userId = req.params.userId;
+        console.log("Fetching workouts for userId:", userId);
+
+        WorkoutModel.find({ user_id: userId }).populate('user_id').populate('accelerometer').populate('gps').exec(function (err, workouts) {
+                if (err) {
+                    console.error("Error finding workouts:", err);
+                    return res.status(500).json({
+                        message: 'Error when getting workouts by user.',
+                        error: err
+                    });
+                }
+            return res.json(workouts);
+        });
+    }
+
 };
 
 function saveWorkout(data, callback) {
@@ -132,6 +149,8 @@ function saveWorkout(data, callback) {
         }
         if (callback) callback(err, savedWorkout);
     });
-}
+};
+
+
 
 module.exports.saveWorkout = saveWorkout;

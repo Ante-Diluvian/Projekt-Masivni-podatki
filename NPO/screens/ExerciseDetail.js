@@ -21,7 +21,8 @@ export default function ExerciseDetail({ route, navigation }) {
    
     const [duration, setDuration] = useState(0);
     const [startTime, setStartTime] = useState(null);
-    
+    const [prevTimestamp, setPrevTimestamp] = useState(null);
+
     const [latitudeArray, setLatitudeArray] = useState([]);
     const [longitudeArray, setLongitudeArray] = useState([]);
     const [altitudeArray, setAltitudeArray] = useState([]);
@@ -30,6 +31,7 @@ export default function ExerciseDetail({ route, navigation }) {
 
     const accelerometerSubscription = useRef(null);
     const totalSpeed = useRef(0);
+    const totalDistance = useRef(0);
     const readingCount = useRef(0);
     const locationSubscription = useRef(null);
     const lastLocation = useRef(null); 
@@ -65,19 +67,80 @@ useEffect(() => {
         fetchUser();
 }, []);
 
+const calculateSpeedAndDistance = async () => {
+    if (accelerometerSubscription.current || locationSubscription.current) return;
+
+    Accelerometer.setUpdateInterval(500);
+    accelerometerSubscription.current = Accelerometer.addListener(accelData => {
+        const magnitude = Math.sqrt(accelData.x ** 2 + accelData.y ** 2 + accelData.z ** 2);
+        const netAccel = Math.abs(magnitude - 1);
+        const estimatedSpeed = netAccel * 3;
+
+        setSpeed(estimatedSpeed.toFixed(2));
+
+        totalSpeed.current += estimatedSpeed;
+        readingCount.current += 1;
+        const newAvg = totalSpeed.current / readingCount.current;
+
+        setMaxSpeed(prevMax => {
+            const newMax = Math.max(prevMax, estimatedSpeed);
+            return newMax.toFixed(2);
+        });
+
+        setAvgSpeed(newAvg.toFixed(2));
+        setAccelerometer(accelData);
+    });
+
+    locationSubscription.current = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.High, distanceInterval: 1 },
+        (newLocation) => {
+            const { latitude, longitude, altitude, speed: locationSpeed } = newLocation.coords;
+
+            if (latitude && longitude && altitude !== null) {
+                latestCoords.current = { latitude, longitude, altitude };
+                setLocation({ latitude, longitude, altitude });
+            }
+
+            if (locationSpeed !== null && locationSpeed > 0) {
+                setSpeed(locationSpeed.toFixed(2));
+            }
+
+            if (lastLocation.current) {
+                const newDistance = calculateDistance(
+                    lastLocation.current.latitude,
+                    lastLocation.current.longitude,
+                    latitude,
+                    longitude
+                );
+
+                if (newDistance > 1) {
+                    totalDistance.current += newDistance;
+                    setDistance(totalDistance.current);
+                }
+            }
+            lastLocation.current = { latitude, longitude };
+        }
+    );
+};
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
-  const R = 6371e3; 
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const distance = R * c; 
-  return distance;
+    const toRad = (value) => (value * Math.PI) / 180;
+
+    const R = 6371000;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
 };
 
 const calculateLocation = async () => {
-    locationSubscription.current = await Location.watchPositionAsync({accuracy: Location.Accuracy.High,  distanceInterval: 1 },
+    locationSubscription.current = await Location.watchPositionAsync({accuracy: Location.Accuracy.High,  distanceInterval: 5, timeInterval: 1000 },
         (newLocation) => {
             const { latitude, longitude, altitude, speed: locationSpeed } = newLocation.coords;
 
@@ -94,7 +157,8 @@ const calculateLocation = async () => {
                 const newDistance = calculateDistance( lastLocation.current.latitude, lastLocation.current.longitude, latitude, longitude );
 
                 if (newDistance > 1) {
-                    setDistance((prev) => prev + newDistance);
+                    totalDistance.current += newDistance;
+                    setDistance(totalDistance.current);
                 }
             }
             lastLocation.current = { latitude, longitude };
@@ -110,7 +174,7 @@ const startLocationLogging = () => {
             setLongitudeArray((prev) => [...prev, longitude]);
             setAltitudeArray((prev) => [...prev, altitude]);
         }
-    }, 5000);
+    }, 1000);
 };
 
 const stopLocationLogging = () => {
@@ -161,14 +225,15 @@ const formatDuration = (totalSeconds) => {
 const sendExerciseData = () => {
     const client = getMqttClient();
     if(client){
-        const user1 = user._id;
+        const exerciseName = exercise.name;
+        const user1 = user;
         const latitude = latitudeArray;
         const longitude = longitudeArray;
         const altitude = altitudeArray; 
         const endTime = Date.now();
         const metValue = exercise.metValue;
 
-        const message = JSON.stringify({ exercise, user1 , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue });
+        const message = JSON.stringify({ exerciseName, user1 , avgSpeed, maxSpeed, latitude, longitude, altitude, distance, startTime, endTime, duration, metValue });
         client.publish("app/workout", message);
 
         console.log('MQTT client connected');
@@ -193,8 +258,7 @@ const sendExerciseData = () => {
         setStatus('running');
         setStartTime(new Date());
 
-        calculateLocation();
-        calculateSpeed();        
+        calculateSpeedAndDistance();        
         startLocationLogging();
     }
     const handlePause = () => {
