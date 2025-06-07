@@ -13,3 +13,5 @@ THRESHOLD = 0.7             #Threshold for cerification
 #Data
 IMG_SIZE = (224, 224)       #Input image size
 MAX_IMAGES = 100            #Max images per class
+MIN_IMAGES = 50             #Min images per class
+MAX_PEOPLE = 50             #Number of diferent people
