@@ -2,17 +2,11 @@ import cv2 as cv
 import numpy as np
 import math
 
-#region Zajem podatkov
-
-#endregion
-
 #region Priprava podatkov
 def process_img(img):
     gray_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     return gray_img
     pass
-
-
 
 def filter_with_gausso_core(img,sigma):
     size_of_the_core = (int)(2 * sigma) * 2 + 1  
@@ -24,13 +18,11 @@ def filter_with_gausso_core(img,sigma):
             core[i,j] = (1 / (2 * math.pi * math.pow(sigma, 2)) * math.exp(-(math.pow((i - k - 1), 2) + math.pow((j - k - 1), 2)) / (2 * math.pow(sigma, 2))))
   
     core /= np.sum(core)
-    if len(img.shape) == 3:
-        filtered_channels = []
-        for channel in range(img.shape[2]):
-            filtered_channels.append(cv.filter2D(img[:,:,channel], -1, core))
-        return np.stack(filtered_channels, axis=2)
-    else:
-        return cv.filter2D(img, -1, core)
+    filtered_channels = []
+    for channel in range(img.shape[2]):
+        filtered_channels.append(cv.filter2D(img[:,:,channel], -1, core))
+
+    return np.stack(filtered_channels, axis=2)
     pass
 
 def linearize_img(img):
@@ -39,6 +31,7 @@ def linearize_img(img):
 
     linearized = (img - min_val) / (max_val - min_val) * 255
     return linearized.astype(np.uint8)
+    pass
 #endregion
 
 #region Augmentacija podatkov
@@ -67,11 +60,7 @@ def rotate_img(img, angle):
     pass
 
 def change_brightness(img, factor):
-    if len(img.shape) == 3:
-        brightness_image = img.astype(np.float32) + factor
-    else:
-        brightness_image = img.astype(np.float32)[:, :, np.newaxis] + factor
-
+    brightness_image = img.astype(np.float32) + factor
     brightness_image = np.clip(brightness_image, 0, 255)
     return brightness_image.astype(np.uint8)
     pass
@@ -102,15 +91,11 @@ def move_img(img, x, y):
 
     return move
     pass
-#endregion
-
-#region 2FA
 
 #endregion
 
 if __name__ == "__main__":
     slika = cv.imread("C:/Users/Tilen/Desktop/Projekt-Masivni-podatki/ORV/man.jpg")
-    #slika = process_img(slika)
     slika = cv.resize(slika,(300,500))
     slika = filter_with_gausso_core(slika,2)
     slika = linearize_img(slika)
