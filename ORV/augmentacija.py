@@ -7,11 +7,6 @@ def process_img(img):
     proc_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     return proc_img
 
-def filter_with_gausso_core(img, sigma):
-    size_of_the_core = int(2 * sigma) * 2 + 1
-    k = (size_of_the_core / 2) - (1 / 2)
-
-
 def filter_with_gausso_core(img,sigma):
     size_of_the_core = (int)(2 * sigma) * 2 + 1  
     k = (size_of_the_core / 2) - (1/2)
@@ -45,7 +40,7 @@ def linearize_img(img):
 def rotate_img(img, angle):
     radian = math.radians(angle)
     rotated_img = np.zeros_like(img)
-    height, width = img.shape[:2]
+    height, width,channels = img.shape
 
     x = width // 2
     y = height // 2
@@ -72,7 +67,7 @@ def change_brightness(img, factor):
 
 def mirror_img(img):
     height, width, channels = img.shape
-    move = np.zeros_like(img)
+    copy_img = img.copy()
     
     for c in range(channels):
       for i in range(height):
@@ -82,7 +77,7 @@ def mirror_img(img):
     return copy_img
 
 def move_img(img, x, y):
-    height, width = img.shape[:2]
+    height, width,channels = img.shape
     move = np.zeros_like(img)
     
     for c in range(channels):
@@ -96,11 +91,8 @@ def move_img(img, x, y):
     return move
 #endregion
 
-#region 2FA
-#endregion
-
 if __name__ == "__main__":
-    slika = cv.imread("C:/Users/Tilen/Desktop/Projekt-Masivni-podatki/ORV/man.jpg")
+    slika = cv.imread("C:/Users/Tilen/Desktop/projekt/Projekt-Masivni-podatki/ORV/man.jpg")
     slika = cv.resize(slika,(300,500))
     slika = filter_with_gausso_core(slika,2)
     slika = linearize_img(slika)
