@@ -122,7 +122,7 @@ client.on('message', (topic, messageBuffer) => {
       }
 
       workoutController.saveWorkout(workoutData);
-      console.log("✅ Workout saved to MongoDB");
+      console.log(" Workout saved to MongoDB");
     } catch (err) {
       console.error('Failed to parse MQTT message:', err);
     }
@@ -160,38 +160,51 @@ client.on('message', (topic, messageBuffer) => {
 function sendMsg(userId) {
   const verifyTopic = `app/twofactor/verify/${userId}`;
   const sendTopic = `app/twofactor/send/${userId}`;
-  client.unsubscribe(verifyTopic);
-  client.subscribe(verifyTopic, (err) => {
-    if (err) {
-      console.error("Subscribe error:", err);
-      return;
-    }
+
+    return new Promise((resolve, reject) => {
+    let verificationMessageHandler;
+
+    client.subscribe(verifyTopic, (err) => {
     console.log(`Subscribed to ${verifyTopic}`);
-    client.publish(sendTopic, JSON.stringify({ message: "KURAC JE SKOCA" }));
+    client.publish(sendTopic, JSON.stringify({ message: "Approve login by taking a photo!" }));
     console.log('Published 2FA message to:', sendTopic);
 
+      verificationMessageHandler = (topic, messageBuffer) => {
+        if (topic === verifyTopic) {
+          try {
+            const data = JSON.parse(messageBuffer.toString());
+            console.log("Verification data:", data);
+            client.unsubscribe(verifyTopic);
+            client.removeListener('message', verificationMessageHandler);
+            resolve(data.success === true);
+          } catch (e) {
+            console.error("Invalid JSON message:", messageBuffer.toString());
+            client.unsubscribe(verifyTopic);
+            client.removeListener('message', verificationMessageHandler);
+            reject(false);
+          }
+        }
+      };
+
+      client.on('message', verificationMessageHandler);
+      const timeout = setTimeout(() => {
+        client.unsubscribe(verifyTopic);
+        client.removeListener('message', verificationMessageHandler);
+        console.warn(`2FA verification timed out for user ${userId}`);
+        reject(new Error('2FA verification timed out'));
+      }, 30000); 
+
+      const originalResolve = resolve;
+      resolve = (value) => {
+        clearTimeout(timeout);
+        originalResolve(value);
+      };
+      const originalReject = reject;
+      reject = (reason) => {
+        clearTimeout(timeout);
+        originalReject(reason);
+      };
+    });
   });
-
-  const messageHandler = (topic, message) => {
-    if (topic === verifyTopic) {
-      try {
-        const data = JSON.parse(message.toString());
-        console.log("Verification data:", data);
-      } catch (e) {
-        console.error("Invalid JSON message:", message.toString());
-      }
-    }
-  };
-  
-  // Register the handler
-
-  client.once('message', messageHandler);
-  
-  // Return a way to unsubscribe later if needed
-  return {
-    unsubscribe: () => {
-      client.unsubscribe(verifyTopic);
-      client.removeListener('message', messageHandler);
-    }
-  };
-}module.exports = {sendMsg}
+}
+module.exports = {sendMsg}

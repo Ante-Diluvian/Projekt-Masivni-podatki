@@ -90,8 +90,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1C1C1E',
-    padding: 20,
-    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 30,
+  },
+  innerContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
   },
   header: {
     flexDirection: 'row',
@@ -118,8 +123,15 @@ const styles = StyleSheet.create({
     color: '#FF3B3F',
     marginBottom: 12,
   },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FF3B3F',
+    marginTop: 20,
+    marginBottom: 10,
+  },
   infoRow: {
-    marginBottom: 15,
+    marginBottom: 12,
   },
   label: {
     fontSize: 18,

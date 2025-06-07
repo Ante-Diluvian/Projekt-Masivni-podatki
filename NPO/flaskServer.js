@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { flask } from './api/api';
 
 export const loginImageToServer = async (imageUri) => {
   try {
@@ -30,29 +31,31 @@ export const loginImageToServer = async (imageUri) => {
 
     const responseData = await response.json();
     console.log(responseData);
-    const [success, error] =  responseData;
-
-    return success;
+    return responseData.success;
   } catch (error) {
     console.log(responseData);
     return null;
   }
 };
 
-export const registerImageToServer = async (imageUri,username) => {
+export const registerFileToServer = async (zipPath, username) => {
   try {
-    const formData = new FormData();
-    const filename = imageUri.split('/').pop();
-    const fileType = filename.split('.').pop();
-    const mimeType = `register/${fileType}`;
-    
-    formData.append('username', username);
-    formData.append('image', {
-      uri: imageUri,
-      name: filename,
-      type: mimeType,
-    });
+    const filename = zipPath.split('/').pop();
 
+    console.log('Registering file to server...');
+    console.log('ZIP Path:', zipPath);
+    console.log('Username for registration:', username);
+    console.log('Filename:', filename);
+
+    const formData = new FormData();
+
+    formData.append('username', username);
+
+    formData.append('file', {
+      uri: zipPath.startsWith('file://') ? zipPath : `file://${zipPath}`,
+      name: filename || 'frames.zip',
+      type: 'application/zip',
+    });
 
     const response = await fetch('http://194.163.176.154:5000/register', {
       method: 'POST',
@@ -60,11 +63,10 @@ export const registerImageToServer = async (imageUri,username) => {
     });
 
     const responseData = await response.json();
-    const [success, error] =  responseData;
-    console.log(responseData);
-    return success;
+    console.log('Response: ', responseData);
+    return responseData.success;
   } catch (error) {
-    console.log(responseData);
-    return null;
+    console.error('Error uploading file:', error);
+    return false;
   }
 };

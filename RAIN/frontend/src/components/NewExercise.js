@@ -3,7 +3,7 @@ import { UserContext } from '../userContext';
 import { Navigate } from 'react-router-dom';
 
 function NewExercise() {
-  const { user } = useContext(UserContext);
+  const userContext = useContext(UserContext);
   const [name, setName] = useState('');
   const [metValue, setSetValue] = useState('');
   const [imagePath, setImagePath] = useState('');
@@ -32,10 +32,19 @@ function NewExercise() {
     }
   }
 
-  //if (!user || user.user_type !== 1) return <Navigate replace to="/" />;
   if (uploaded) return <Navigate replace to="/admin" />;
 
+  if (!userContext.user) {
+    return <div className="text-white text-center py-5">Loading...</div>;
+  }
+
+  if (userContext.user.user_type !== 1) {
+    return <Navigate replace to="/" />;
+  }
+
+
   return (
+    <>
     <section className="login-container">
       <div className="login-box">
         <h2 className="login-title">ADD NEW</h2>
@@ -54,6 +63,7 @@ function NewExercise() {
         </form>
       </div>
     </section>
+    </>
   );
 }
 

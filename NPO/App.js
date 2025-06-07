@@ -55,17 +55,20 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isRecognized, setIsRecognized] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (event) => {
       const handleAppStateChange = async () => {
         if (event === 'background' || event === 'inactive') {
           const client = getMqttClient();
-          if (!client) return;
+          if (!client) 
+            return;
 
           try {
             const data = await AsyncStorage.getItem('token');
-            if (!data) return;
+            if (!data) 
+              return;
 
             const userId = JSON.parse(data)._id;
             client.publish("status/offline", userId, 0, false);
@@ -86,6 +89,33 @@ export default function App() {
       subscription.remove();
     };
   }, []);
+
+  const openCamera = async () => {
+  try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      if (permissionResult.status !== 'granted') {
+        Alert.alert("Permission Denied", "Camera access is required.");
+        return false;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({ 
+        allowsEditing: false,
+        quality: 1, 
+      });
+
+      if (!result.canceled) {
+        const imageUri = result.assets[0].uri;
+        console.log('Captured Image URI:', imageUri);
+        const recognitionResult = await loginImageToServer(imageUri);
+        console.log("Recognition Result:", recognitionResult);
+        return recognitionResult;
+      }
+      return false;
+    } catch (error) {
+      console.error('Camera error:', error);
+      return false;
+    }
+  };
 
   async function getData() {
     try {    
@@ -108,7 +138,11 @@ export default function App() {
             console.log(`Subscribed to app/twofactor/send/${userId}`);
           }
         });
-
+        console.log('Subscribing to topic:', `app/twofactor/send/${userId}`);
+        client.on('message', (topic, message) => {
+          console.log('Received MQTT message on topic:', topic);
+          console.log('Message content:', message.toString());
+        });
         client.on('message', (topic, messageBuffer) => {
           if (topic === `app/twofactor/send/${userId}`) {
             const message = JSON.parse(messageBuffer.toString());
@@ -117,15 +151,19 @@ export default function App() {
               {
                 text: 'Deny',
                 onPress: () => {
-                  client.publish(`app/twofactor/verify/${userId}`, JSON.stringify('denied'), { qos: 2 });
+                  const jsonfile = JSON.stringify({status:'denied', success});
+                  console.log('Publishing to app/twofactor/verify:', jsonfile);
+                  client.publish(`app/twofactor/verify/${userId}`,jsonfile , { qos: 2 });
                 },
                 style: 'cancel',
               },
               {
                 text: 'Approve',
-                onPress: () =>{
-                  openCamera();
-                  client.publish(`app/twofactor/verify/${userId}`, JSON.stringify('approved'), { qos: 2 });
+                onPress: async () =>{
+                  const recognitionSuccess = await openCamera();
+                  const jsonfile = JSON.stringify({status: 'approved', success: recognitionSuccess,});
+                  console.log('Publishing to app/twofactor/verify:', jsonfile);
+                  client.publish(`app/twofactor/verify/${userId}`,jsonfile , { qos: 2 });
                 },
               },
             ], { cancelable: false });
@@ -142,7 +180,7 @@ export default function App() {
 
   useEffect(() => {
     getData();
-  }, []);
+  }, [isAuthenticated]);
 
   if (isLoading)
     return null;
