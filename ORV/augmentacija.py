@@ -2,51 +2,20 @@ import cv2 as cv
 import numpy as np
 import math
 
-#region Zajem podatkov
-#endregion
-
 #region Priprava podatkov
 def process_img(img):
     proc_img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     return proc_img
 
-def convolution(img, core):
-    height, width = img.shape[:2]
-    j_height, j_width = core.shape
-
-    pad_v = j_height // 2
-    pad_s = j_width // 2
-
-    if img.ndim == 2:
-        # Grayscale slika
-        expanded_image = np.pad(img, ((pad_v, pad_v), (pad_s, pad_s)), mode='constant')
-        filtrated = np.zeros_like(img, dtype=np.float32)
-
-        for i in range(height):
-            for j in range(width):
-                region = expanded_image[i:i + j_height, j:j + j_width]
-                filtrated[i, j] = np.sum(region * core)
-
-    elif img.ndim == 3:
-        # RGB slika
-        expanded_image = np.pad(img, ((pad_v, pad_v), (pad_s, pad_s), (0, 0)), mode='constant')
-        filtrated = np.zeros_like(img, dtype=np.float32)
-
-        for c in range(img.shape[2]):
-            for i in range(height):
-                for j in range(width):
-                    region = expanded_image[i:i + j_height, j:j + j_width, c]
-                    filtrated[i, j, c] = np.sum(region * core)
-
-    else:
-        raise ValueError("Slika mora biti 2D (grayscale) ali 3D (RGB)")
-
-    return filtrated
-
 def filter_with_gausso_core(img, sigma):
     size_of_the_core = int(2 * sigma) * 2 + 1
     k = (size_of_the_core / 2) - (1 / 2)
 
+
+def filter_with_gausso_core(img,sigma):
+    size_of_the_core = (int)(2 * sigma) * 2 + 1  
+    k = (size_of_the_core / 2) - (1/2)
+  
     core = np.zeros((size_of_the_core, size_of_the_core), dtype=np.float32)
     for i in range(size_of_the_core):
         for j in range(size_of_the_core):
@@ -55,7 +24,11 @@ def filter_with_gausso_core(img, sigma):
             )
 
     core /= np.sum(core)
-    return convolution(img, core)
+    filtered_channels = []
+    for channel in range(img.shape[2]):
+        filtered_channels.append(cv.filter2D(img[:,:,channel], -1, core))
+
+    return np.stack(filtered_channels, axis=2)
 
 def linearize_img(img):
     min_val = np.min(img)
@@ -74,23 +47,22 @@ def rotate_img(img, angle):
     rotated_img = np.zeros_like(img)
     height, width = img.shape[:2]
 
-    cx = width // 2
-    cy = height // 2
+    x = width // 2
+    y = height // 2
+    for c in range(channels):
+        for i in range(height):
+            for j in range(width):
+                x1 = (j - x) * math.cos(radian) - (i - y) * math.sin(radian)
+                y1 = (j - x) * math.sin(radian) + (i - y) * math.cos(radian)
 
-    for i in range(height):
-        for j in range(width):
-            x_shifted = j - cx
-            y_shifted = i - cy
+                x1 = round(x1 + x)
+                y1 = round(y1 + y)
 
-            x_rot = x_shifted * math.cos(radian) - y_shifted * math.sin(radian)
-            y_rot = x_shifted * math.sin(radian) + y_shifted * math.cos(radian)
+                if 0 <= x1 < width and 0 <= y1 < height:
+                    rotated_img[i, j, c] = img[y1, x1, c]
 
-            x_new = round(x_rot + cx)
-            y_new = round(y_rot + cy)
-
-            if 0 <= x_new < width and 0 <= y_new < height:
-                rotated_img[i, j] = img[y_new, x_new]
-
+    if channels == 1:
+        return rotated_img[:, :, 0]
     return rotated_img
 
 def change_brightness(img, factor):
@@ -99,25 +71,56 @@ def change_brightness(img, factor):
     return brightness_image.astype(np.uint8)
 
 def mirror_img(img):
-    return np.fliplr(img)
+    height, width, channels = img.shape
+    move = np.zeros_like(img)
+    
+    for c in range(channels):
+      for i in range(height):
+        for j in range(width):
+            copy_img[i, width - j - 1, c] = img[i, j, c]
+            
+    return copy_img
 
 def move_img(img, x, y):
     height, width = img.shape[:2]
-    moved_img = np.zeros_like(img)
-
-    for i in range(height):
+    move = np.zeros_like(img)
+    
+    for c in range(channels):
+      for i in range(height):
         for j in range(width):
-            new_i = i - y
-            new_j = j - x
-
-            if 0 <= new_i < height and 0 <= new_j < width:
-                moved_img[i, j] = img[new_i, new_j]
-
-    return moved_img
+          new_i = i - y
+          new_j = j - x
+          if 0 <= new_i < height and 0 <= new_j < width:
+            move[i, j, c] = img[new_i, new_j, c]
+            
+    return move
 #endregion
 
 #region 2FA
 #endregion
 
 if __name__ == "__main__":
-    pass
+    slika = cv.imread("C:/Users/Tilen/Desktop/Projekt-Masivni-podatki/ORV/man.jpg")
+    slika = cv.resize(slika,(300,500))
+    slika = filter_with_gausso_core(slika,2)
+    slika = linearize_img(slika)
+
+    rot_slika = rotate_img(slika,-45)
+    svetlost_slike = change_brightness(slika,-100)
+    zrcali_sliko = mirror_img(slika)
+    slika1 = move_img(slika,50,-50)
+
+    if slika is None:
+        print("Napaka: Slika ni bila naloÅ¾ena. Preveri pot do slike.")
+    else:
+        while True:  
+            cv.imshow('Slika', slika)
+            cv.imshow('Rot Slika', rot_slika)
+            cv.imshow('Svetla slika', svetlost_slike)
+            cv.imshow("zrcali", zrcali_sliko)
+            cv.imshow("move image", slika1)
+            if cv.waitKey(1) & 0xFF == ord('q'):
+                break
+
+cv.waitKey(0)
+cv.destroyAllWindows()

@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  face2fa:
+    build: .
+    container_name: face2fa_app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
