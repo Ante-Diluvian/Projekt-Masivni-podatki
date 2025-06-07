@@ -5,85 +5,85 @@ import { logout } from '../api/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ProfileScreen = ({ navigation, onLogout }) => {
-    const [user, setUser] = useState({ username: '', email: '', password: '', age: '', weight: '', height: '', gender: '', });
+    const [user, setUser] = useState({ username: '', email: '',age: '', gender: '', weight: '', height: '' });
 
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-            const userData = await AsyncStorage.getItem('token');
-            if(userData) 
-                setUser(JSON.parse(userData));
-            
-            } catch (error) {
-                console.error('Failed to load user data', error);
-            }
-        };
-        fetchUser();
+      const fetchUser = async () => {
+        try {
+        const userData = await AsyncStorage.getItem('token');
+        if(userData) 
+          setUser(JSON.parse(userData));
+        
+        } catch (error) {
+          console.error('Failed to load user data', error);
+        }
+      };
+      fetchUser();
     }, []);
 
     const handleLogout = async () => {
-        try {
-            await logout();
-            onLogout();
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
+      try {
+        await logout();
+        onLogout();
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
     } 
 
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.innerContainer}>
-          <View style={styles.header}>
+        <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-              <Ionicons name="chevron-back" size={28} color="#FF3B3F" />
+                <Ionicons name="chevron-back" size={28} color="#FF3B3F" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>User profile</Text>
-          </View>
+            <Text style={styles.headerTitle}>User Profile</Text>
+        </View>
 
-          <View style={styles.content}>
-            {/* Account information */}
-            <Text style={styles.sectionTitle}>Account info</Text>
-            <View style={styles.infoRow}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Account Details</Text>
+
+          <View style={styles.infoRow}>
               <Text style={styles.label}>Username:</Text>
               <Text style={styles.value}>{user.username}</Text>
-            </View>
-            <View style={styles.infoRow}>
+          </View>
+
+          <View style={styles.infoRow}>
               <Text style={styles.label}>Email:</Text>
               <Text style={styles.value}>{user.email}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Password:</Text>
-              <Text style={styles.value}>{user.password}</Text>
-            </View>
+          </View>
+        </View>
 
-            {/* Personal information */}
-            <Text style={styles.sectionTitle}>Personal info</Text>
-            <View style={styles.infoRow}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>User Details</Text>
+
+          <View style={styles.infoRow}>
               <Text style={styles.label}>Age:</Text>
-              <Text style={styles.value}>{user.age || '—'}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Weight (kg):</Text>
-              <Text style={styles.value}>{user.weight || '—'}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>Height (cm):</Text>
-              <Text style={styles.value}>{user.height || '—'}</Text>
-            </View>
-            <View style={styles.infoRow}>
+              <Text style={styles.value}>{user.age}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
               <Text style={styles.label}>Gender:</Text>
-              <Text style={styles.value}>{user.gender || '—'}</Text>
-            </View>
+              <Text style={styles.value}>{user.gender}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+              <Text style={styles.label}>Weight:</Text>
+              <Text style={styles.value}>{user.weight}</Text>
+          </View>
+
+          <View style={styles.infoRow}>
+              <Text style={styles.label}>Height:</Text>
+              <Text style={styles.value}>{user.height}</Text>
           </View>
         </View>
 
         <View style={styles.logoutContainer}>
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+                <Text style={styles.logoutText}>Logout</Text>
+            </TouchableOpacity>
         </View>
       </SafeAreaView>
-  );
+    );
 };
 
 const styles = StyleSheet.create({
@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    marginLeft: 20,
   },
   backButton: {
     paddingRight: 10,
@@ -112,8 +113,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FF3B3F',
   },
-  content: {
-    flex: 1,
+  section: {
+    marginBottom: 25,
+    marginLeft: 20,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FF3B3F',
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 22,
