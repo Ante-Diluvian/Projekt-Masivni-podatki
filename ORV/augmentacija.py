@@ -12,22 +12,7 @@ def process_img(img):
     return gray_img
     pass
 
-def convolution(img, core):
-    height, width = img.shape
-    j_height, j_width = core.shape
 
-    pad_v = j_height // 2
-    pad_s = j_width // 2
-      
-    
-    expanded_image = np.pad(img, ((pad_v, pad_v), (pad_s, pad_s)))
-    filtrated = np.zeros_like(img, dtype=np.float32)
-    for i in range(height):
-        for j in range(width):
-            filtrated[i, j] = np.sum(expanded_image[i:i+j_height, j:j+j_width] * core)
-    
-    return filtrated
-    pass
 
 def filter_with_gausso_core(img,sigma):
     size_of_the_core = (int)(2 * sigma) * 2 + 1  
@@ -39,7 +24,13 @@ def filter_with_gausso_core(img,sigma):
             core[i,j] = (1 / (2 * math.pi * math.pow(sigma, 2)) * math.exp(-(math.pow((i - k - 1), 2) + math.pow((j - k - 1), 2)) / (2 * math.pow(sigma, 2))))
   
     core /= np.sum(core)
-    return convolution(img,core)
+    if len(img.shape) == 3:
+        filtered_channels = []
+        for channel in range(img.shape[2]):
+            filtered_channels.append(cv.filter2D(img[:,:,channel], -1, core))
+        return np.stack(filtered_channels, axis=2)
+    else:
+        return cv.filter2D(img, -1, core)
     pass
 
 def linearize_img(img):
@@ -110,26 +101,26 @@ def move_img(img, x, y):
 #endregion
 
 if __name__ == "__main__":
-    slika = cv.imread("test/clovek2.jpg")
-    slika = process_img(slika)
+    slika = cv.imread("C:/Users/Tilen/Desktop/Projekt-Masivni-podatki/ORV/man.jpg")
+    #slika = process_img(slika)
     slika = cv.resize(slika,(300,500))
     slika = filter_with_gausso_core(slika,2)
     slika = linearize_img(slika)
 
-    rot_slika = rotate_img(slika,45)
-    svetlost_slike = change_brightness(slika,100)
-    zrcali_sliko = mirror_img(slika)
-    slika1 = move_img(slika,50,-50)
+   #rot_slika = rotate_img(slika,45)
+   #svetlost_slike = change_brightness(slika,100)
+   #zrcali_sliko = mirror_img(slika)
+   #slika1 = move_img(slika,50,-50)
 
     if slika is None:
         print("Napaka: Slika ni bila naloÅ¾ena. Preveri pot do slike.")
     else:
         while True:  
-            cv.imshow('Slika', slika.astype(np.uint8))
-            cv.imshow('Rot Slika', rot_slika)
-            cv.imshow('Svetla slika', svetlost_slike)
-            cv.imshow("zrcali", zrcali_sliko)
-            cv.imshow("move image", slika1)
+            cv.imshow('Slika', slika)
+           #cv.imshow('Rot Slika', rot_slika)
+           #cv.imshow('Svetla slika', svetlost_slike)
+           #cv.imshow("zrcali", zrcali_sliko)
+           #cv.imshow("move image", slika1)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
 
