@@ -1,5 +1,5 @@
 var UserModel = require('../models/userModel.js');
-
+var mqttHandler = require('./mqttHandler.js');
 /**
  * userController.js
  *
@@ -54,7 +54,13 @@ module.exports = {
         var user = new UserModel({
 			username : req.body.username,
 			password : req.body.password,
-			email : req.body.email
+			email : req.body.email,
+            age : req.body.age,
+            weight : req.body.weight,
+            height : req.body.height,
+            gender : req.body.gender,
+            user_type: 0,
+            twoFactor: { web: true, mobile: false },
         });
 
         user.save(function (err, user) {
@@ -75,7 +81,7 @@ module.exports = {
     update: function (req, res) {
         var id = req.params.id;
 
-        UserModel.findOne({_id: id}, function (err, user) {
+        UserModel.findOne({ _id: id }, function (err, user) {
             if (err) {
                 return res.status(500).json({
                     message: 'Error when getting user',
@@ -89,9 +95,7 @@ module.exports = {
                 });
             }
 
-            user.username = req.body.username ? req.body.username : user.username;
-			user.password = req.body.password ? req.body.password : user.password;
-			user.email = req.body.email ? req.body.email : user.email;
+            if (typeof req.body.twoFactor !== 'undefined') user.twoFactor = req.body.twoFactor;
 			
             user.save(function (err, user) {
                 if (err) {
@@ -154,5 +158,79 @@ module.exports = {
                 }
             });
         }
-    }
+    },
+
+    me: function(req, res){
+        if(!req.session.userId)
+            return res.status(401).json({message: 'Unauthorized'});
+        
+        UserModel.findById(req.session.userId, function(err, user){
+            if(err || !user)
+                return res.status(401).json({message: 'Unauthorized'});   
+            return res.json(user);
+        });
+    },
+
+    getUserById: async function (id) {
+        try {
+            return await User.findById(id);
+        } catch (err) {
+            console.error("Error fetching user by ID:", err);
+            return null;
+        }
+    },
+
+    loginOnSite: async function(req, res, next) {
+        UserModel.authenticate(req.body.username, req.body.password, function(err, user){
+            if(err || !user){
+                var err = new Error('Wrong username or paassword');
+                err.status = 401;
+                return next(err);
+            }
+            req.session.userId = user._id;
+            console.log("User logged in:", user._id);
+            if (!user.twoFactor || user.twoFactor.web === false) {
+                console.log("2FA skipped for on-site user:", user._id);
+                return res.json(user);
+            }
+            
+            mqttHandler.sendMsg(user._id).then(success => {
+                if (success) {
+                console.log("Login succsesfuly:", success );
+                return res.json(user);
+                } else {
+                console.error("Failied to login", success);
+                return res.status(401).json({ message: '2FA failed' });
+                }
+            }).catch(err => {
+                console.error("2FA error:", err);
+                return res.status(500).json({ message: 'Internal 2FA error' });
+            });
+
+        });
+    },
+    register_on_site: function (req, res) {
+        var user = new UserModel({
+			username : req.body.username,
+			password : req.body.password,
+			email : req.body.email,
+            age : req.body.age,
+            weight : req.body.weight,
+            height : req.body.height,
+            gender : req.body.gender,
+            user_type: 0,
+            twoFactor: { web: false, mobile: false },
+        });
+
+        user.save(function (err, user) {
+            if (err) {
+                return res.status(500).json({
+                    message: 'Error when creating user',
+                    error: err
+                });
+            }
+
+            return res.status(201).json(user);
+        });
+    },
 };

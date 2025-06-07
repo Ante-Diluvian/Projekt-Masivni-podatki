@@ -1,14 +1,18 @@
 import { useContext } from "react";
 import { UserContext } from "../userContext";
-import { Link } from "react-router-dom";
 
 function Footer() {
+  const { user } = useContext(UserContext);
 
   return (
-    <footer className="bg-light text-center text-lg-start mt-auto border-top">
-
-      <div className="text-center py-3 bg-light border-top small text-muted">
-        © 2025 Copyright: <a className="text-decoration-none text-reset" href="#">Nekaj</a>
+    <footer className="bg-dark text-light mt-auto py-3">
+      <div className="container text-center small">
+        <p className="mb-1">
+          © {new Date().getFullYear()} IME — All rights reserved.
+        </p>
+        {user && user.user_type === 1 && (
+          <p className="text-muted mb-0">Admin Access Enabled</p>
+        )}
       </div>
     </footer>
   );

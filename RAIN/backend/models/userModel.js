@@ -10,11 +10,26 @@ var userSchema = new Schema({
 		type: Date,
 		default: Date.now
 	},
+	age: Number,
+	weight: Number,
+	height: Number,
+	gender: { type: String, enum: ['male', 'female', 'other'] },
 	user_type : Number,
+	twoFactor: {
+		web: { type: Boolean, default: false },
+		mobile: { type: Boolean, default: false },
+	},
+	userEmbedding: {
+		type: [Number],
+		default: []
+	}
 });
 
 userSchema.pre('save', function(next){
 	var user = this;
+
+	if (!user.isModified('password')) return next();
+
 	bcrypt.hash(user.password, 10, function(err, hash){
 		if(err){
 			return next(err);
@@ -45,5 +60,5 @@ userSchema.statics.authenticate = function(username, password, callback){
 	});
 }
 
-var User = mongoose.model('user', userSchema);
+var User = mongoose.model('User', userSchema);
 module.exports = User;
