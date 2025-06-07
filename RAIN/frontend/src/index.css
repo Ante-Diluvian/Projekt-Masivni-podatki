@@ -522,3 +522,24 @@ body {
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 59, 63, 0.5);
 }
+.admin-table-wrapper {
+  max-height: 500px; 
+  overflow-y: auto;
+  overflow-x: auto;
+  margin: 20px 0;
+  border-radius: 10px;
+}
+
+.admin-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.admin-table-wrapper::-webkit-scrollbar-track {
+  background: #1C1C1E;
+}
+
+.admin-table-wrapper::-webkit-scrollbar-thumb {
+  background-color: #FF3B3F;
+  border-radius: 4px;
+}

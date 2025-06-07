@@ -96,12 +96,17 @@ function AdminPanel() {
     }
   }
 
+  if (!userContext.user) {
+    return <div className="text-white text-center py-5">Loading...</div>;
+  }
+
+  if (userContext.user.user_type !== 1) {
+    return <Navigate replace to="/" />;
+  }
+  console.log("UserContext:", userContext.user);
 
   return (
-    <>
-      {/*
-      {!userContext.user && userContext.user.user_type? <Navigate replace to="/" /> : null}
-      */}
+    <>   
 
       <div className="container-fluid py-4 mt-5 admin-container">
         <h1 className="text-center mb-4 text-white">Admin Dashboard</h1>
@@ -145,8 +150,9 @@ function AdminPanel() {
 function UsersTable({ users, onDelete }) {
   return (
     <div className="table-responsive">
+      <div className="admin-table-wrapper" style={{ maxHeight: '480px', overflowY: 'auto' }}>
       <table className="table table-dark table-hover">
-        <thead>
+        <thead >
           <tr>
             <th scope="col">ID</th>
             <th scope="col">Username</th>
@@ -176,36 +182,40 @@ function UsersTable({ users, onDelete }) {
         </tbody>
       </table>
     </div>
+    </div>
   );
 }
 
 function ExercisesTable({ exercises, onDelete }) {
   return (
     <div className="table-responsive">
-      <table className="table table-dark table-hover">
-        <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {exercises.map(exercise => (
-            <tr key={exercise._id}>
-              <td className="text-truncate" style={{maxWidth: '150px'}}>{exercise._id}</td>
-              <td>{exercise.name}</td>
-             
-              <td>
-                <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(exercise._id)} >Delete</button>
-              </td>
+      <div className="admin-table-wrapper" style={{ maxHeight: '480px', overflowY: 'auto' }}>
+        <table className="table table-dark table-hover">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            
+            {exercises.map(exercise => (
+              <tr key={exercise._id}>
+                <td className="text-truncate" style={{maxWidth: '150px'}}>{exercise._id}</td>
+                <td>{exercise.name}</td>
+                <td>
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => onDelete(exercise._id)} >Delete</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <Link to="/newexecise" className="btn btn-sm btn-outline-danger"> Add Exercise</Link>
     </div>
   );
 }
+
 
 export default AdminPanel;
