@@ -24,7 +24,7 @@ jobs:
           node-version: '20'
 
       - name: Create .env file
-        run: echo "${{ secrets.MONGO }}" > .env
+        run: echo "${{ secrets.MONGOLOID }}" > .env
 
       - name: Install dependencies
         run: npm install
@@ -32,7 +32,7 @@ jobs:
       - name: Start backend server
         run: |
           nohup npm start &
-          sleep 8
+          sleep 10
 
       - name: Run Jest tests
-        run: npm test
+        run: npm test -- --runInBand --detectOpenHandles
