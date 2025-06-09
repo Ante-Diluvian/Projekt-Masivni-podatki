@@ -21,9 +21,9 @@ jobs:
         
     - name: Install dependencies
       run: |
-          npm Install
           cd RAIN || exit 1
           cd frontend || exit 2
+          npm Install
     
     - name: Start frontend
       run: |
