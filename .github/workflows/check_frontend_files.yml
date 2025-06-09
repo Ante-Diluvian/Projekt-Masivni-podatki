@@ -28,7 +28,7 @@ jobs:
           missing_files=0
 
           for file in "${files[@]}"; do
-            if [ ! -e "$file" ] then
+            if [ ! -e "$file" ]; then
               echo "::error::Missing essential file: $file"
               missing_files=$((missing_files + 1))
             fi
