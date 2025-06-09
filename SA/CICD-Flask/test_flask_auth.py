@@ -23,7 +23,7 @@ def test_flask_register_login():
     print("Sending POST /login...")
     image_data = {"username": "CICD-test"}
     image_path = os.path.join(script_dir, "testimage.jpg")
-    login_files = {"file": open(image_path, "rb")}
+    login_files = {"image": open(image_path, "rb")}
     r2 = requests.post(f"{FLASK_URL}/login", data=image_data, files=login_files)
     login_files["file"].close()
 
