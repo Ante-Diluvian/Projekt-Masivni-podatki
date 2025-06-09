@@ -23,13 +23,13 @@ jobs:
       run: |
           cd RAIN || exit 1
           cd frontend || exit 2
-          npm Install
+          npm install
     
     - name: Start frontend
       run: |
           cd RAIN || exit 3
           cd frontend || exit 4
-          npm start
+          npm start &
           sleep 15
           if ! curl -s http://localhost:3000 > /dev/null; then
             echo "Frontend did not start successfully"
