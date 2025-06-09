@@ -26,7 +26,6 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # MongoDB connection
 mongo_uri = os.getenv("MONGO_URI")
-print(".env: ", os.getenv("MONGO_URI"))
 client = MongoClient(mongo_uri)
 db = client["test"]
 users_collection = db["users"]
