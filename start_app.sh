@@ -5,7 +5,7 @@ echo "Starting full application stack..."
 #Scripts
 BACKEND_SCRIPT="./RAIN/backend/start-backend.sh"
 FRONTEND_SCRIPT="./RAIN/frontend/start-frontend.sh"
-BROKER_COMPOSE="./NPO/Broker/docker-compose.yml"
+BROKER_SCRIPT="./NPO/Broker/start-broker.sh"
 FA_COMPOSE="./ORV/server/docker-compose.yml"
 
 #2FA
@@ -18,11 +18,12 @@ else
 fi
 
 #NPO - MQTT
-if [ -f "${BROKER_COMPOSE}" ]; then
-    echo "Starting Mosquitto broker..."
-    docker compose -f "${BROKER_COMPOSE}" up -d --wait
+if [ -f "${BROKER_SCRIPT}" ]; then
+    chmod +x "$BROKER_SCRIPT"
+    echo "Starting broker..."
+    (cd ./NPO/Broker && ./start-broker.sh)
 else
-    echo "Missing docker-compose.yml for MQTT at $BROKER_COMPOSE"
+    echo "Missing broker start script at $BROKER_SCRIPT"
     exit 1
 fi
 
