@@ -29,7 +29,7 @@ jobs:
       run: |
           cd RAIN || exit 3
           cd frontend || exit 4
-          npm test -- --watchAll=false
+          npm test -- --watchAll=false --testPathPattern=__tests__/login.test.js
 
 
           
