@@ -1,4 +1,4 @@
-name: Run frontend
+name: test login
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  check-files:
+  run-frontend:
+    needs: check-files
     runs-on: ubuntu-latest
 
     steps:
@@ -25,17 +26,11 @@ jobs:
           cd frontend || exit 2
           npm install
     
-    - name: Start frontend
+    - name: Run login test
       run: |
           cd RAIN || exit 3
           cd frontend || exit 4
-          npm start &
-          sleep 15
-          if ! curl -s http://localhost:3000 > /dev/null; then
-            echo "Frontend did not start successfully"
-            exit 5
-          else
-            echo "Frontend is running successfully"
-          fi
+          npm test -- --watchAll=false
+
 
           
