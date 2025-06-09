@@ -1,0 +1,42 @@
+name: Flask Auth Test with Compose
+
+on:
+  push:
+    branches: [ CICD-Flask ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: self-hosted
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create .env file
+        run: echo "${{ secrets.MONGO }}" > ORV/server/.env
+
+      - name: Start services with Docker Compose
+        run: |
+          docker-compose -f ORV/server/docker-compose.yml up -d
+
+      - name: Wait for Flask to boot
+        run: sleep 15
+
+      - name: Set up Python for test script
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      - name: Install test dependencies
+        run: pip install requests
+
+      - name: Run Flask register/login test
+        run: python SA/CICD-Flask/test_flask_auth.py
+
+      - name: Stop Docker Compose
+        if: always()
+        run: docker-compose -f ORV/server/docker-compose.yml down
+

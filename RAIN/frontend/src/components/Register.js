@@ -1,4 +1,4 @@
-import { useState } from 'react';localhost
+import { useState } from 'react';
 
 function Register() {
   const [username, setUsername] = useState([]);
