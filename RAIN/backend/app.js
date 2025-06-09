@@ -6,7 +6,7 @@ var logger = require('morgan');
 var mongoose = require('mongoose');
 var session = require('express-session');
 var cors = require('cors');
-
+require('dotenv').config();
 
 //Routes
 var userRoutes = require('./routes/userRoutes');
@@ -112,7 +112,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
-const mongoURI = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@massive.s1l5p0y.mongodb.net/?retryWrites=true&w=majority&appName=Massive`;
+const mongoURI = process.env.MONGO_URI;
 
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Conection to MongoDB successful'))
