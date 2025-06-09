@@ -28,7 +28,7 @@ def test_flask_register_login():
     login_files["file"].close()
 
     assert r2.status_code == 200, f"Login failed with status {r2.status_code}"
-    json_response = r1.json()
+    json_response = r2.json()
     assert json_response.get("success") == True, f"Login returned unexpected response: {json_response}"
 
     print("Login successful!")
