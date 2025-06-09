@@ -1,0 +1,35 @@
+name: test login
+
+on:
+  push:
+    branches: [main, CI/CD-test] #popravi na main
+  pull_request:
+    branches: [main]
+
+jobs:
+  run-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: |
+          cd RAIN || exit 1
+          cd frontend || exit 2
+          npm install
+    
+    - name: Run login test
+      run: |
+          cd RAIN || exit 3
+          cd frontend || exit 4
+          npm test -- --watchAll=false --testPathPattern=__tests__/login.test.js
+
+
+          
