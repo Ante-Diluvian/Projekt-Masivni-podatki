@@ -16,6 +16,7 @@ jobs:
     
     - name: Check files
       run: |
+          cd RAIN || exit 1
           cd frontend || exit 1
           files=(
             "package.json"
