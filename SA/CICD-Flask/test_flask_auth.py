@@ -21,8 +21,10 @@ def test_flask_register_login():
     print("Register successful!")
 
     print("Sending POST /login...")
-    login_files = {"file": open("testimage.jpg", "rb")}
-    r2 = requests.post(f"{FLASK_URL}/login", files=login_files)
+    image_data = {"username": "CICD-test"}
+    image_path = os.path.join(script_dir, "testimage.jpg")
+    login_files = {"file": open(image_path, "rb")}
+    r2 = requests.post(f"{FLASK_URL}/login", data=image_data, files=login_files)
     login_files["file"].close()
 
     assert r2.status_code == 200, f"Login failed with status {r2.status_code}"
