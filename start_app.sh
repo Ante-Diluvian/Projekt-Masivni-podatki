@@ -7,7 +7,6 @@ BACKEND_SCRIPT="./RAIN/backend/start-backend.sh"
 FRONTEND_SCRIPT="./RAIN/frontend/start-frontend.sh"
 BROKER_COMPOSE="./NPO/Broker/docker-compose.yml"
 FA_COMPOSE="./ORV/server/docker-compose.yml"
-FLASK_URL="http://localhost:5000"
 
 #2FA
 if [ -f "${FA_COMPOSE}" ]; then
@@ -28,25 +27,11 @@ else
 fi
 
 #Wait for flask server
-RETRIES=0
-MAX_RETRIES=20
-until curl --silent --fail "$FLASK_URL" > /dev/null; do
-    RETRIES=$((RETRIES + 1))
-    echo "Flask not ready yet. Retrying in $RETRY_DELAY seconds..."
-    
-    if [ "$RETRIES" -ge "$MAX_RETRIES" ]; then
-        echo ""
-        echo "Error: Flask backend not reachable!"
-        exit 1
-    fi
-
-    sleep 5
-done
-echo "Flask is up!"
+echo "Sleeping for 20 seconds to allow MQTT and Flask to start..."
+sleep 20
 
 #Backend
 if [ -f "$BACKEND_SCRIPT" ]; then
-    echo "Found $BACKEND_SCRIPT"
     chmod +x "$BACKEND_SCRIPT"
     echo "Starting backend..."
     (cd ./RAIN/backend && ./start-backend.sh)
@@ -57,7 +42,6 @@ fi
 
 #Frontend
 if [ -f "$FRONTEND_SCRIPT" ]; then
-    echo "Found $FRONTEND_SCRIPT"
     chmod +x "$FRONTEND_SCRIPT"
     echo "Starting frontend..."
     (cd ./RAIN/frontend && ./start-frontend.sh)
