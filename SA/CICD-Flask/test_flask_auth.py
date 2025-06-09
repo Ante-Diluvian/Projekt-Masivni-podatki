@@ -6,7 +6,10 @@ FLASK_URL = "http://localhost:5000"
 def test_flask_register_login():
     print("Sending POST /register...")
     register_data = {"username": "CICD-test"}
-    register_files = {"file": open("image.zip", "rb")}
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    zip_path = os.path.join(script_dir, "images.zip")
+    register_files = {"file": open(zip_path, "rb")}
+
 
     r1 = requests.post(f"{FLASK_URL}/register", data=register_data, files=register_files)
     register_files["file"].close()
@@ -17,7 +20,7 @@ def test_flask_register_login():
     print("Register successful!")
 
     print("Sending POST /login...")
-    login_files = {"file": open("testimage.png", "rb")}
+    login_files = {"file": open("testimage.jpg", "rb")}
     r2 = requests.post(f"{FLASK_URL}/login", files=login_files)
     login_files["file"].close()
 
