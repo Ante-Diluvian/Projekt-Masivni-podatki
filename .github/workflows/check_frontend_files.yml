@@ -1,0 +1,41 @@
+name: Check frontend files
+
+on:
+  push:
+    branches: [CI/CD-test]#popravi na main
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-files:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Check files
+      run: |
+          cd frontend || exit 1
+          files=(
+            "package.json"
+            "src/index.js"
+            "public/index.html" 
+            "src/App.js"
+            "src/App.css"
+          )
+          missing_files = 0
+
+          for file in "${files[@]}"; do
+            if [! -e "$file" ] then
+              echo "::error::Missing essential file: $file"
+              missing_files=$((missing_files + 1))
+            fi
+          done
+
+          if [ $missing_files -gt 0 ]; then
+            echo "::error::$missing_files essential frontend files are missing!"
+            exit 1
+          else
+            echo "All essential frontend files are present."
+          fi
