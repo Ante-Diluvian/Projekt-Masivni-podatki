@@ -25,7 +25,7 @@ def test_flask_register_login():
     image_path = os.path.join(script_dir, "testimage.jpg")
     login_files = {"image": open(image_path, "rb")}
     r2 = requests.post(f"{FLASK_URL}/login", data=image_data, files=login_files)
-    login_files["file"].close()
+    login_files["image"].close()
 
     assert r2.status_code == 200, f"Login failed with status {r2.status_code}"
     json_response = r2.json()
