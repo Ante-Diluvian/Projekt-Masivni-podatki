@@ -2,7 +2,7 @@ name: Check frontend files
 
 on:
   push:
-    branches: [CI/CD-test]#popravi na main
+    branches: [main,CI/CD-test] #popravi na main
   pull_request:
     branches: [main]
 
@@ -25,10 +25,10 @@ jobs:
             "src/App.js"
             "src/App.css"
           )
-          missing_files = 0
+          missing_files=0
 
           for file in "${files[@]}"; do
-            if [! -e "$file" ] then
+            if [ ! -e "$file" ] then
               echo "::error::Missing essential file: $file"
               missing_files=$((missing_files + 1))
             fi
