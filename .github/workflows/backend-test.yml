@@ -2,7 +2,7 @@ name: RAIN Backend Tests
 
 on:
   push:
-    branches: [ "CI/CD-Backend" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
