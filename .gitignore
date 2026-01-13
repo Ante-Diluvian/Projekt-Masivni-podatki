@@ -3,6 +3,8 @@ dataset/
 logs/
 made/
 
+Animacija/
+Animacija.zip
 myenv/
 myenv_new/
 node_modules
@@ -23,3 +25,4 @@ __pycache__/
 .vscode/
 .idea/
 *.swp
+*.blend

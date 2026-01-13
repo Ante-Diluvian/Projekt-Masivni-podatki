@@ -7,6 +7,93 @@ import { zipSync } from 'fflate';
 import { decode as atob } from 'base-64';
 import { registerFileToServer } from '../flaskServer';
 
+export function DCT_RLE(rgba) {
+    const W = 224;
+    const H = 224;
+    const BS = 8;
+
+    const Q = new Int16Array([
+        16,11,10,16,24,40,51,61,
+        12,12,14,19,26,58,60,55,
+        14,13,16,24,40,57,69,56,
+        14,17,22,29,51,87,80,62,
+        18,22,37,56,68,109,103,77,
+        24,35,55,64,81,104,113,92,
+        49,64,78,87,103,121,120,101,
+        72,92,95,98,112,100,103,99
+    ]);
+
+    const COS = new Float32Array(64);
+    for (let u = 0; u < 8; u++)
+        for (let x = 0; x < 8; x++)
+            COS[u * 8 + x] = Math.cos(((2 * x + 1) * u * Math.PI) / 16);
+
+    const C = new Float32Array([0.70710678,1,1,1,1,1,1,1]);
+
+    const tmp = new Float32Array(64);
+    const block = new Float32Array(64);
+    const dctOut = new Int16Array((W >> 3) * (H >> 3) * 64);
+
+    let dctIdx = 0;
+
+    for (let by = 0; by < H; by += BS) {
+        for (let bx = 0; bx < W; bx += BS) {
+            let k = 0;
+
+            for (let y = 0; y < 8; y++) {
+                let p = ((by + y) * W + bx) * 4;
+                for (let x = 0; x < 8; x++) {
+                    block[k++] = (0.299 * rgba[p] + 0.587 * rgba[p + 1] + 0.114 * rgba[p + 2]) - 128;
+                    p += 4;
+                }
+            }
+
+        for (let y = 0; y < 8; y++) {
+            const row = y * 8;
+            for (let u = 0; u < 8; u++) {
+                let sum = 0;
+                const c = COS.subarray(u * 8, u * 8 + 8);
+
+                for (let x = 0; x < 8; x++) 
+                    sum += block[row + x] * c[x];
+
+                tmp[row + u] = 0.5 * C[u] * sum;
+            }
+        }
+
+        for (let u = 0; u < 8; u++) {
+            for (let v = 0; v < 8; v++) {
+                let sum = 0;
+                const c = COS.subarray(v * 8, v * 8 + 8);
+
+                for (let y = 0; y < 8; y++) 
+                    sum += tmp[y * 8 + u] * c[y];
+
+                dctOut[dctIdx++] = (0.5 * C[v] * sum / Q[u * 8 + v]) | 0;
+            }
+        }
+        }
+    }
+
+    const rle = [];
+    let prev = dctOut[0];
+    let count = 1;
+
+    for (let i = 1; i < dctOut.length; i++) {
+        const v = dctOut[i];
+        if (v === prev && count < 32767) {
+            count++;
+        } else {
+            rle.push(count, prev);
+            prev = v;
+            count = 1;
+        }
+    }
+    rle.push(count, prev);
+
+    return Int16Array.from(rle);
+}
+
 const Capture = ({ username, onDone }) => {
   const cameraRef = useRef(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -78,8 +165,9 @@ const Capture = ({ username, onDone }) => {
           encoding: FileSystem.EncodingType.Base64,
         });
 
-        const binary = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-        files[`frame_${i + 1}.jpg`] = binary;
+        const rgba = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+        const dctRle = DCT_RLE(rgba);
+        files[`frame_${i + 1}.dctrle`] = new Uint8Array(dctRle.buffer);
       }
 
       const zipped = zipSync(files);
