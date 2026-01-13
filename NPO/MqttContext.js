@@ -10,7 +10,7 @@ export const initMqttClient = (userId) => {
   if (!client) {
     console.log('User ID bruh:', userId);
 
-    client = mqtt.connect('ws://194.163.176.154:9001', {
+    client = mqtt.connect('ws://84.247.139.124:9001', {
       username: 'app_guest',
       password: 'fentanyl',
 

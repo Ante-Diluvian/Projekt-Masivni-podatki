@@ -24,7 +24,7 @@ export const loginImageToServer = async (imageUri) => {
     });
 
 
-    const response = await fetch('http://194.163.176.154:5000/login', {
+    const response = await fetch('http://84.247.139.124:5000/login', {
       method: 'POST',
       body: formData,
     });
@@ -57,7 +57,7 @@ export const registerFileToServer = async (zipPath, username) => {
       type: 'application/zip',
     });
 
-    const response = await fetch('http://194.163.176.154:5000/register', {
+    const response = await fetch('http://84.247.139.124:5000/register', {
       method: 'POST',
       body: formData,
     });

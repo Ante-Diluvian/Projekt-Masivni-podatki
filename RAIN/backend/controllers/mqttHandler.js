@@ -10,7 +10,7 @@ const logDir = path.join(__dirname, '../logs');
 const logFile = path.join(logDir, 'mqtt_status.log');
 const activeUsers = new Set();
 
-const client = mqtt.connect('ws://194.163.176.154:9001', {
+const client = mqtt.connect('ws://84.247.139.124:9001', {
   username: 'app_guest',
   password: 'fentanyl'
 });

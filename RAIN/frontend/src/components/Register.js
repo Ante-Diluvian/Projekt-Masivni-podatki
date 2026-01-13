@@ -23,7 +23,7 @@ function Register() {
     }
 
     try {
-      const res = await fetch("http://194.163.176.154:3001/users/registeSite", {
+      const res = await fetch("http://84.247.139.124:3001/users/registeSite", {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

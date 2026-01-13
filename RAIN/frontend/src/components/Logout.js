@@ -7,7 +7,7 @@ function Logout(){
     useEffect(function(){
         const logout = async function(){
             userContext.setUserContext(null);
-            const res = await fetch("http://194.163.176.154:3001/users/logout");
+            const res = await fetch("http://84.247.139.124:3001/users/logout");
         }
         logout();
     }, []);
