@@ -27,7 +27,8 @@
     "morgan": "~1.9.1",
     "mqtt": "^5.13.0",
     "multer": "^2.0.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "recipe-scraper": "^2.1.1"
   },
   "main": "app.js",
   "keywords": [],

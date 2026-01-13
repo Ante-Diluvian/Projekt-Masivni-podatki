@@ -18,131 +18,209 @@ async function downloadImage(url, outputPath) {
   });
 }
 
-async function extractAndDownloadMainImage($, folderPath = 'images') {
-  const footer = $('div.loc.article-footer');
-  const imageElement = footer.find('img.universal-image__image').first();
-  const imageUrl = imageElement.attr('data-src') || imageElement.attr('src');
-
-  if (!imageUrl) return null;
-
-  if (!fs.existsSync(folderPath)) {
-    fs.mkdirSync(folderPath, { recursive: true });
-  }
-
-  const filename = path.basename(new URL(imageUrl).pathname);
-  const fullPath = path.join(folderPath, filename);
-
-  try {
-    await downloadImage(imageUrl, fullPath);
-    return fullPath;
-  } catch (err) {
-    console.error('Failed to download image:', err.message);
-    return null;
-  }
-}
-
-function extractMainImage($) {
-  let bestImage = null;
-  let maxWidth = 0;
-
-  $('img.universal-image__image').each((i, el) => {
-    const width = parseInt($(el).attr('width'), 10) || 0;
-    const dataSrc = $(el).attr('data-src') || $(el).attr('src');
-    if (width > maxWidth && dataSrc) {
-      maxWidth = width;
-      bestImage = dataSrc;
-    }
-  });
-
-  return bestImage || null;
+/**
+ * Parse ISO 8601 duration to readable format
+ * PT1H30M -> "1 hr 30 mins"
+ */
+function parseISODuration(duration) {
+  if (!duration) return null;
+  
+  // Already human readable
+  if (!duration.startsWith('PT')) return duration;
+  
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return duration;
+  
+  const parts = [];
+  if (match[1]) parts.push(`${match[1]} hr`);
+  if (match[2]) parts.push(`${match[2]} mins`);
+  if (match[3]) parts.push(`${match[3]} sec`);
+  
+  return parts.join(' ') || null;
 }
 
 async function scrapeAllRecipes(url) {
   try {
-    const { data } = await axios.get(url);
+    const { data } = await axios.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
+      }
+    });
     const $ = cheerio.load(data);
+
+    // Try to find JSON-LD structured data first
+    let recipeData = null;
+    $('script[type="application/ld+json"]').each((i, el) => {
+      try {
+        const json = JSON.parse($(el).html());
+        
+        // Can be array, object, or have @graph
+        let items = [];
+        if (Array.isArray(json)) {
+          items = json;
+        } else if (json['@graph']) {
+          items = json['@graph'];
+        } else {
+          items = [json];
+        }
+        
+        for (const item of items) {
+          if (item['@type'] === 'Recipe' || 
+              (Array.isArray(item['@type']) && item['@type'].includes('Recipe'))) {
+            recipeData = item;
+            break;
+          }
+        }
+      } catch (e) {
+        // Ignore JSON parse errors
+      }
+    });
 
     const recipe = {};
 
-    // Recipe Title
-    recipe.name = $('h1').first().text().trim();
+    if (recipeData) {
+      // === JSON-LD parsing (preferred) ===
+      
+      // Name
+      recipe.name = recipeData.name || '';
 
-    // Nutrition Information
-    const nutrition = {};
+      // Ingredients
+      recipe.ingredients = recipeData.recipeIngredient || [];
 
-    $('.mm-recipes-nutrition-facts-summary__table tr').each((i, tr) => {
-      const value = $(tr).find('td').first().text().trim();
-      const name = $(tr).find('td').last().text().trim().toLowerCase();
-
-      if (name === 'calories') nutrition.calories = value;
-      if (name === 'fat') nutrition.fat = value;
-      if (name === 'carbs') nutrition.carbs = value;
-      if (name === 'protein') nutrition.protein = value;
-    });
-
-    recipe.nutrition = nutrition;
-
-    const ingredients = [];
-
-    // Case 1: If ingredients have headings
-  $('#mm-recipes-lrs-ingredients_1-0 .mm-recipes-structured-ingredients__list-heading').each((i, headingEl) => {
-    const heading = $(headingEl).text().trim();
-    const ul = $(headingEl).next('ul');
-    const items = [];
-
-    ul.find('.mm-recipes-structured-ingredients__list-item').each((j, itemEl) => {
-      const itemText = $(itemEl).text().trim();
-      if (itemText) items.push(itemText);
-    });
-
-    if (items.length) {
-      ingredients.push({ heading, items });
-    }
-  });
-
-  // Case 2: If there are no headings, get all ingredients from a flat list
-  if (ingredients.length === 0) {
-    $('#mm-recipes-lrs-ingredients_1-0 .mm-recipes-structured-ingredients__list .mm-recipes-structured-ingredients__list-item').each((i, itemEl) => {
-      const itemText = $(itemEl).text().trim();
-      if (itemText) {
-        ingredients.push(itemText);
+      // Instructions
+      recipe.instructions = [];
+      if (recipeData.recipeInstructions) {
+        for (const step of recipeData.recipeInstructions) {
+          if (typeof step === 'string') {
+            recipe.instructions.push(step);
+          } else if (step.text) {
+            recipe.instructions.push(step.text);
+          } else if (step.itemListElement) {
+            // Nested HowToSection
+            for (const subStep of step.itemListElement) {
+              if (subStep.text) {
+                recipe.instructions.push(subStep.text);
+              }
+            }
+          }
+        }
       }
-    });
-  }
 
-  recipe.ingredients = ingredients;
+      // Nutrition
+      recipe.nutrition = {};
+      if (recipeData.nutrition) {
+        const n = recipeData.nutrition;
+        if (n.calories) recipe.nutrition.calories = n.calories.replace(/\D/g, '');
+        if (n.fatContent) recipe.nutrition.fat = n.fatContent.replace(/\D/g, '');
+        if (n.carbohydrateContent) recipe.nutrition.carbs = n.carbohydrateContent.replace(/\D/g, '');
+        if (n.proteinContent) recipe.nutrition.protein = n.proteinContent.replace(/\D/g, '');
+        if (n.sodiumContent) recipe.nutrition.sodium = n.sodiumContent.replace(/\D/g, '');
+        if (n.fiberContent) recipe.nutrition.fiber = n.fiberContent.replace(/\D/g, '');
+        if (n.sugarContent) recipe.nutrition.sugar = n.sugarContent.replace(/\D/g, '');
+        if (n.cholesterolContent) recipe.nutrition.cholesterol = n.cholesterolContent.replace(/\D/g, '');
+      }
 
-  recipe.instructions = [];
+      // Details
+      recipe.details = {
+        prepTime: parseISODuration(recipeData.prepTime),
+        cookTime: parseISODuration(recipeData.cookTime),
+        totalTime: parseISODuration(recipeData.totalTime),
+        servings: recipeData.recipeYield ? 
+          (Array.isArray(recipeData.recipeYield) ? recipeData.recipeYield[0] : recipeData.recipeYield) : null
+      };
 
-  $('#mm-recipes-steps__content_1-0 ol > li').each((i, li) => {
-    const cloned = $(li).clone();
+      // Image
+      let imageUrl = null;
+      if (recipeData.image) {
+        if (typeof recipeData.image === 'string') {
+          imageUrl = recipeData.image;
+        } else if (recipeData.image.url) {
+          imageUrl = recipeData.image.url;
+        } else if (Array.isArray(recipeData.image)) {
+          imageUrl = recipeData.image[0]?.url || recipeData.image[0];
+        }
+      }
 
-    cloned.find('figure').remove();
+      // Download image
+      recipe.imagePath = null;
+      recipe.imageUrl = imageUrl;
+      
+      if (imageUrl) {
+        const folderPath = 'images';
+        if (!fs.existsSync(folderPath)) {
+          fs.mkdirSync(folderPath, { recursive: true });
+        }
+        try {
+          let filename = `recipe_${Date.now()}.jpg`;
+          try {
+            const urlObj = new URL(imageUrl);
+            const baseName = path.basename(urlObj.pathname);
+            if (baseName && path.extname(baseName)) {
+              filename = baseName;
+            }
+          } catch {}
+          
+          const fullPath = path.join(folderPath, filename);
+          await downloadImage(imageUrl, fullPath);
+          recipe.imagePath = fullPath;
+        } catch (err) {
+          console.error('Failed to download image:', err.message);
+        }
+      }
 
-    const step = cloned.text().trim();
-    if (step) {
-      recipe.instructions.push(step);
+    } else {
+      // === Fallback: HTML parsing ===
+      console.log('No JSON-LD found, falling back to HTML parsing');
+      
+      // Recipe Title
+      recipe.name = $('h1').first().text().trim() || $('title').text().split(' - ')[0].trim();
+
+      // Ingredients - try multiple selectors
+      recipe.ingredients = [];
+      const ingredientSelectors = [
+        '.mm-recipes-structured-ingredients__list-item',
+        '.mntl-structured-ingredients__list-item',
+        '[data-ingredient]',
+        '.ingredient',
+        '.ingredients li'
+      ];
+      
+      for (const selector of ingredientSelectors) {
+        if (recipe.ingredients.length === 0) {
+          $(selector).each((i, el) => {
+            const text = $(el).text().trim();
+            if (text) recipe.ingredients.push(text);
+          });
+        }
+      }
+
+      // Instructions
+      recipe.instructions = [];
+      const instructionSelectors = [
+        '.mm-recipes-steps__content p',
+        '.mntl-sc-block-html',
+        '.instructions li',
+        '.direction',
+        '[data-instruction]'
+      ];
+      
+      for (const selector of instructionSelectors) {
+        if (recipe.instructions.length === 0) {
+          $(selector).each((i, el) => {
+            const text = $(el).text().trim();
+            if (text && text.length > 10) recipe.instructions.push(text);
+          });
+        }
+      }
+
+      recipe.nutrition = {};
+      recipe.details = {};
+      recipe.imagePath = null;
     }
-  });
 
-  recipe.imagePath = await extractAndDownloadMainImage($, 'images');
-
-  const details = {};
-  const detailItems = $('.comp.mm-recipes-details .mm-recipes-details__item');
-
-  const detailLabels = ['prepTime', 'cookTime', 'totalTime', 'servings'];
-
-  detailItems.each((i, el) => {
-    const value = $(el).find('.mm-recipes-details__value').text().trim();
-    if (value && i < detailLabels.length) {
-      details[detailLabels[i]] = value;
-    }
-  });
-
-  recipe.details = details;
-
-
-  return recipe;
+    return recipe;
   } catch (error) {
     console.error('Error scraping the recipe:', error.message);
     return null;

@@ -286,52 +286,40 @@ def register():
 
 @app.route("/login", methods=["POST"])
 def login():
-    username = request.form.get("username")
-    zip_file = request.files.get("file")
+    username = request.form.get("username") # Expecting a username
+    img_file = request.files.get("image") # Expecting an image file
 
-    if not username or not zip_file:
-        return jsonify({"success": False, "error": "Missing username or file"}), 400
+    if not username or not img_file:
+        return jsonify({"success": False, "error": "Missing username or image"}), 400 # Bad Request
 
     user = users_collection.find_one({"username": username})
     if not user or "userEmbedding" not in user:
-        return jsonify({"success": False, "error": "User not found"}), 404
+        return jsonify({"success": False, "error": "User not found"}), 404 # Not Found
 
-    temp_dir = tempfile.mkdtemp()
-    zip_path = os.path.join(temp_dir, "login_image.zip")
-    zip_file.save(zip_path)
+    filename = f"{uuid.uuid4().hex}_{secure_filename(img_file.filename)}" # Generate a unique filename
+    img_path = os.path.join(app.config['UPLOAD_FOLDER'], filename) # Define the path to save the image
+    img_file.save(img_path) # Save the uploaded image file
 
     try:
-        # Extract and decompress the zip file
-        decompressed_files, file_list = extract_and_decompress_zip(zip_path, temp_dir)
-        
-        if not decompressed_files:
-            return jsonify({"success": False, "error": "No valid images in zip"}), 400
-        
-        # Use the first image for authentication
-        img_path = decompressed_files[0]
-        
         try:
-            img = preprocess_image(img_path)
-            new_embedding = embedding_model.predict(img)
+            img = preprocess_image(img_path) # Preprocess the image
+            new_embedding = embedding_model.predict(img) # Get the embedding for the new image
             if isinstance(new_embedding, list):
                 new_embedding = new_embedding[0]
-            new_embedding = new_embedding.flatten()
+            new_embedding = new_embedding.flatten() # Flatten the embedding
         except Exception as e:
             logging.error(f"Image processing or prediction failed: {str(e)}")
-            return jsonify({"success": False, "error": "Failed to process image"}), 500
+            return jsonify({"success": False, "error": "Failed to process image"}), 500 # Internal Server Error
 
-        similarity = cosine_similarity(np.array(user["userEmbedding"]), new_embedding)
-        is_match = bool(similarity > 0.6)
+        similarity = cosine_similarity(np.array(user["userEmbedding"]), new_embedding) # Calculate cosine similarity
+        is_match = bool(similarity > 0.6) # Define a threshold for matching
 
         logging.info(f"Login attempt for '{username}': similarity = {similarity:.4f}, match = {is_match}")
-        return jsonify({"success": is_match, "similarity": float(similarity)}), 200
-
-    except Exception as e:
-        logging.error(f"Login failed: {str(e)}")
-        return jsonify({"success": False, "error": "Server error"}), 500
+        return jsonify({"success": is_match, "similarity": float(similarity)}), 200 # OK
 
     finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        if os.path.exists(img_path): # Remove the saved image file
+            os.remove(img_path)
 
 
 if __name__ == "__main__":
