@@ -1,0 +1,7 @@
+../Core/Src/lsm303dlhc.c:25:26:WriteRegister	32	static
+../Core/Src/lsm303dlhc.c:31:26:ReadRegister	40	static
+../Core/Src/lsm303dlhc.c:37:9:LSM303DLHC_ReadWhoAmI	24	static
+../Core/Src/lsm303dlhc.c:48:19:LSM303DLHC_Init	24	static
+../Core/Src/lsm303dlhc.c:86:9:LSM303DLHC_DataReady	24	static
+../Core/Src/lsm303dlhc.c:98:19:LSM303DLHC_ReadAccel	40	static
+../Core/Src/lsm303dlhc.c:144:6:LSM303DLHC_Calibrate	64	static
