@@ -354,8 +354,9 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI1_Init();
   MX_USB_PCD_Init();
-  MX_USART1_UART_Init();
+  MX_TIM3_Init();
   MX_USART2_UART_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* Pocakaj da se ESP32 zazene */
@@ -363,49 +364,59 @@ int main(void)
 
   /* Ugasni vse LED */
   HAL_GPIO_WritePin(GPIOE, LD3_Pin|LD4_Pin|LD5_Pin|LD6_Pin|
-  LD7_Pin|LD8_Pin|LD9_Pin|LD10_Pin, GPIO_PIN_RESET);
+                           LD7_Pin|LD8_Pin|LD9_Pin|LD10_Pin, GPIO_PIN_RESET);
 
-
-  // KORAK 1: Testiraj ESP32 komunikacijo
-
-  HAL_GPIO_WritePin(GPIOE, LD3_Pin, GPIO_PIN_SET);  /* Rdeca - cakamo */
-
+  /* Testiraj komunikacijo z ESP32 */
+  /* Prizgi LED3 (rdeca) ko cakamo na ESP32 */
+  HAL_GPIO_WritePin(GPIOE, LD3_Pin, GPIO_PIN_SET);
   while (ESP32_SendCommand("AT\r\n", "OK", NULL, ESP32_TIMEOUT_SHORT) != ESP32_OK) {
     HAL_Delay(1000);
   }
 
+  /* ESP32 se odziva - ugasni LED3, prizgi LED5 (oranzna) */
   HAL_GPIO_WritePin(GPIOE, LD3_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOE, LD5_Pin, GPIO_PIN_SET);  /* Oranzna - ESP32 OK */
+  HAL_GPIO_WritePin(GPIOE, LD5_Pin, GPIO_PIN_SET);
 
   /* Izklopi odmev ukazov */
   ESP32_SendCommand("ATE0\r\n", "OK", NULL, ESP32_TIMEOUT_SHORT);
 
+  /* Preberi verzijo firmware */
+  ESP32_SendCommand("AT+GMR\r\n", "OK", NULL, ESP32_TIMEOUT_SHORT);
 
-  // KORAK 2: Povezi na WiFi
-
-  while (ESP32_ConnectWiFi() != HAL_OK) {
-    /* Utripaj z rdeco ce WiFi ne uspe */
-    HAL_GPIO_TogglePin(GPIOE, LD3_Pin);
-    HAL_Delay(500);
+  /* Zazeni webserver za konfiguracijo WiFi */
+  /* Prizgi LED7 (zelena) ce webserver uspesno zazene */
+  if (ESP32_StartWebserver() == HAL_OK) {
+    HAL_GPIO_WritePin(GPIOE, LD5_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOE, LD7_Pin, GPIO_PIN_SET);
   }
 
-  HAL_GPIO_WritePin(GPIOE, LD3_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOE, LD7_Pin, GPIO_PIN_SET);  /* Zelena - WiFi OK */
+  /* Ce imamo staticne WiFi podatke, se takoj povezi */
+  if (ESP32_HasStaticWiFi()) {
+    while (ESP32_ConnectWiFi() != HAL_OK) {
+      HAL_Delay(2000);
+    }
+  }
 
-
-  // KORAK 3: Inicializiraj accelerometer
-
+  /* Inicializiraj accelerometer */
   if (LSM303DLHC_Init(&hi2c1) != HAL_OK) {
+    /* Napaka - utripaj z rdeco LED */
     while(1) {
       HAL_GPIO_TogglePin(GPIOE, LD3_Pin);
       HAL_Delay(200);
     }
   }
 
-  /* Kalibriraj */
+  /* Kalibriraj accelerometer */
+  /* Prizgi LED9 (oranzna) med kalibracijo */
   HAL_GPIO_WritePin(GPIOE, LD9_Pin, GPIO_PIN_SET);
+
+  /* Pocakaj sekundo da se naprava umiri */
   HAL_Delay(1000);
+
+  /* Izvedi kalibracijo */
   LSM303DLHC_Calibrate(&hi2c1);
+
+  /* Ugasni LED9 - kalibracija koncana */
   HAL_GPIO_WritePin(GPIOE, LD9_Pin, GPIO_PIN_RESET);
 
   /* USER CODE END 2 */
@@ -427,11 +438,19 @@ int main(void)
       /* Ce TCP ni povezan, odpri povezavo */
       if (!tcp_connected) {
         if (ESP32_ConnectTCP() != HAL_OK) {
-          /* Ponovno povezi WiFi ce TCP ne uspe */
-          ESP32_ConnectWiFi();
+
+          /* TCP povezava ni uspela - morda WiFi ni povezan */
+          if (ESP32_HasStaticWiFi()) {
+            ESP32_ConnectWiFi();
+          }
+
+          /* Pocakaj pred ponovnim poskusom */
           HAL_Delay(1000);
           continue;
         }
+
+        /* TCP povezan - ugasni vse statusne LED, samo smerne ostanejo */
+        HAL_GPIO_WritePin(GPIOE, LD3_Pin|LD5_Pin|LD7_Pin|LD9_Pin, GPIO_PIN_RESET);
       }
 
       /* Oblikuj podatke v JSON format */
@@ -441,6 +460,7 @@ int main(void)
 
       /* Poslji podatke na streznik */
       if (ESP32_SendData(json_data) != HAL_OK) {
+        /* Posiljanje ni uspelo - povezava je verjetno zaprta */
         tcp_connected = 0;
       }
     }
@@ -452,9 +472,9 @@ int main(void)
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
