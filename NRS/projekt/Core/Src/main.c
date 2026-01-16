@@ -93,6 +93,7 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_USB_PCD_Init(void);
+static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
@@ -102,16 +103,17 @@ static void ESP32_FlushBuffer(void);
 static ESP32_Result_t ESP32_WaitResponse(const char *resp1, const char *resp2, uint32_t timeout_ms);
 static ESP32_Result_t ESP32_SendCommand(const char *cmd, const char *resp1, const char *resp2, uint32_t timeout_ms);
 
-/* WiFi funkcije */
+/* Funkcije za WiFi konfiguracijo */
+static HAL_StatusTypeDef ESP32_StartWebserver(void);
+static uint8_t ESP32_HasStaticWiFi(void);
 static HAL_StatusTypeDef ESP32_ConnectWiFi(void);
 
-/* TCP funkcije */
+/* Funkcije za TCP komunikacijo */
 static HAL_StatusTypeDef ESP32_ConnectTCP(void);
 static HAL_StatusTypeDef ESP32_SendData(const char *data);
 
-/* LED funkcija */
+/* Funkcija za prikaz smeri na LED */
 static void LED_ShowDirection(AccelData_t *data);
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -160,10 +162,9 @@ static ESP32_Result_t ESP32_WaitResponse(const char *resp1, const char *resp2, u
       }
 
       /* Preveri ali smo dobili pricakovan odgovor */
-      if ((resp1 && strstr(esp32_rx_buffer, resp1)) ||
-        (resp2 && strstr(esp32_rx_buffer, resp2))) {
+      if ((resp1 && strstr(esp32_rx_buffer, resp1)) || (resp2 && strstr(esp32_rx_buffer, resp2))) {
         return ESP32_OK;
-        }
+      }
     }
   }
 
@@ -185,13 +186,57 @@ static ESP32_Result_t ESP32_SendCommand(const char *cmd, const char *resp1, cons
   return ESP32_WaitResponse(resp1, resp2, timeout_ms);
 }
 
-/* Povezi ESP32 na WiFi omrezje */
+/* Zazeni ESP32 webserver za WiFi konfiguracijo */
+static HAL_StatusTypeDef ESP32_StartWebserver(void)
+{
+  char cmd[96];
+
+  /* Omogoci shranjevanje nastavitev v flash */
+  if (ESP32_SendCommand("AT+SYSSTORE=1\r\n", "OK", NULL, ESP32_TIMEOUT_SHORT) != ESP32_OK) {
+    return HAL_ERROR;
+  }
+
+  /* Omogoci samodejno povezavo ob zagonu */
+  if (ESP32_SendCommand("AT+CWAUTOCONN=1\r\n", "OK", NULL, ESP32_TIMEOUT_SHORT) != ESP32_OK) {
+    return HAL_ERROR;
+  }
+
+  /* Nastavi AP+Station nacin delovanja */
+  if (ESP32_SendCommand("AT+CWMODE=3\r\n", "OK", NULL, ESP32_TIMEOUT_SHORT) != ESP32_OK) {
+    return HAL_ERROR;
+  }
+
+  /* Konfiguriraj Access Point */
+  snprintf(cmd, sizeof(cmd), "AT+CWSAP=\"%s\",\"%s\",1,3\r\n", AP_SSID, AP_PASS);
+  if (ESP32_SendCommand(cmd, "OK", NULL, ESP32_TIMEOUT_SHORT) != ESP32_OK) {
+    return HAL_ERROR;
+  }
+
+  /* Zazeni webserver na portu 80 */
+  snprintf(cmd, sizeof(cmd), "AT+WEBSERVER=1,%u,%u\r\n",
+           (unsigned)WEBSERVER_PORT, (unsigned)WEBSERVER_TIMEOUT);
+  if (ESP32_SendCommand(cmd, "OK", NULL, 10000) != ESP32_OK) {
+    return HAL_ERROR;
+  }
+
+  return HAL_OK;
+}
+
+/* Preveri ali so staticni WiFi podatki nastavljeni */
+static uint8_t ESP32_HasStaticWiFi(void)
+{
+  /* Ce WIFI_SSID ni privzeta vrednost, imamo staticne podatke */
+  return (strcmp(WIFI_SSID, "WIFI_SSID") != 0) &&
+         (strcmp(WIFI_PASS, "WIFI_PASS") != 0);
+}
+
+/* Povezi ESP32 na WiFi omrezje s staticnimi podatki */
 static HAL_StatusTypeDef ESP32_ConnectWiFi(void)
 {
   char cmd[128];
 
-  /* Nastavi Station nacin (WiFi client) */
-  if (ESP32_SendCommand("AT+CWMODE=1\r\n", "OK", NULL, ESP32_TIMEOUT_SHORT) != ESP32_OK) {
+  /* Nastavi AP+Station nacin */
+  if (ESP32_SendCommand("AT+CWMODE=3\r\n", "OK", NULL, ESP32_TIMEOUT_SHORT) != ESP32_OK) {
     return HAL_ERROR;
   }
 
@@ -255,20 +300,25 @@ static HAL_StatusTypeDef ESP32_SendData(const char *data)
 /* Prikazi smer nagiba na LED diodah */
 static void LED_ShowDirection(AccelData_t *data)
 {
-  /* Ugasni smerne LED (ohrani statusne) */
-  HAL_GPIO_WritePin(GPIOE, LD4_Pin|LD6_Pin|LD8_Pin|LD10_Pin, GPIO_PIN_RESET);
+  /* Ugasni vse smerne LED */
+  HAL_GPIO_WritePin(GPIOE, LD3_Pin|LD4_Pin|LD5_Pin|LD6_Pin|
+                           LD7_Pin|LD8_Pin|LD9_Pin|LD10_Pin, GPIO_PIN_RESET);
 
   /* X os - levo/desno */
   if (data->x_g > 0.3f) {
+    /* Nagib desno */
     HAL_GPIO_WritePin(GPIOE, LD6_Pin, GPIO_PIN_SET);
   } else if (data->x_g < -0.3f) {
+    /* Nagib levo */
     HAL_GPIO_WritePin(GPIOE, LD4_Pin, GPIO_PIN_SET);
   }
 
   /* Y os - naprej/nazaj */
   if (data->y_g > 0.3f) {
+    /* Nagib naprej */
     HAL_GPIO_WritePin(GPIOE, LD10_Pin, GPIO_PIN_SET);
   } else if (data->y_g < -0.3f) {
+    /* Nagib nazaj */
     HAL_GPIO_WritePin(GPIOE, LD8_Pin, GPIO_PIN_SET);
   }
 }
