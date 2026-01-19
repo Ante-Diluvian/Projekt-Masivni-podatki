@@ -13,7 +13,13 @@ function Header() {
     <header>
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div className="container-fluid">
-          <Link className="navbar-brand fw-bold fs-4 text-danger" to="/">IME</Link>
+          <Link className="navbar-brand fw-bold fs-4 text-danger" to="/"> 
+          <img
+            src="/logo512.png"
+            alt="Home"
+            style={{ height: "30px", paddingBottom: "4px" }}
+          />
+          </Link>
 
           <button
             className="navbar-toggler"
